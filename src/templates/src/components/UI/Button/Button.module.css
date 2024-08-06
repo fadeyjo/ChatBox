@@ -1,0 +1,13 @@
+.button {
+    background-color: var(--first-main-color);
+    padding: 6px 15px;
+    font-size: 30px;
+    border: none;
+    border-radius: 15px;
+    font-weight: 300;
+}
+
+.button:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+}

@@ -14,7 +14,9 @@ class CustomerController {
                 `INSERT INTO customer (surname, name, patronymic, email, birthday, password) VALUES ($1, $2, $3, $4, $5, $6)`,
                 [surname, name, patronymic, email, birthday, await bcryptjs.hash(password, saltPassword)]
             );
+            const id = (await db.query(`SELECT id FROM customer WHERE email = $1`, [email])).rows[0].id;
             res.json({
+                id,
                 surname,
                 name,
                 patronymic,

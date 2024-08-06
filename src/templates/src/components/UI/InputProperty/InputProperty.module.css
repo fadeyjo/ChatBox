@@ -1,0 +1,28 @@
+.input {
+    color: #000000;
+    width: 270px;
+    height: 30px;
+    padding-left: 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 25px;
+}
+
+.label {
+    font-size: 25px;
+    font-weight: 200;
+}
+
+.property {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 500px;
+}
+
+.error {
+    height: 30px;
+    color: red;
+    margin-left: 220px;
+    margin-top: 5px;
+}

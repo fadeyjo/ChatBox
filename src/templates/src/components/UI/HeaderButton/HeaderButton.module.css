@@ -1,0 +1,11 @@
+.button {
+    font-size: 35px;
+    background: none;
+    border: none;
+    font-weight: bold;
+}
+
+.button:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+}

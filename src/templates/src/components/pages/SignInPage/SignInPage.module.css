@@ -1,0 +1,20 @@
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form {
+    width: 640px;
+    border: none;
+    border-radius: 30px;
+    background-color: var(--second-main-color);
+    padding: 30px 60px;
+    box-sizing: border-box;
+}
+
+.title {
+    font-size: 35px;
+    font-weight: bold;
+    text-align: center;
+}

@@ -10,4 +10,15 @@ export default class API {
         .then(response => response.json())
         .then(data => data);
     }
+
+    static async authCustomer({email, password}) {
+        return await fetch("http://localhost:8080/api/customer", {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${email} ${password}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => data)
+    }
 }

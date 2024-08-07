@@ -6,6 +6,7 @@ import SignUpPage from "./components/pages/SignUpPage/SignUpPage";
 import SignInPage from "./components/pages/SignInPage/SignInPage";
 import NotFoundPage from "./components/pages/NotFoundPage/NotFoundPage";
 import AuthContext from "./context/index";
+import ProfilePage, {profileLoader} from "./components/pages/ProfilePage/ProfilePage";
 
 
 function App() {
@@ -20,6 +21,8 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<IsAuthDashBoard />}>
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="profile/:id" element={<ProfilePage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>

@@ -1,0 +1,48 @@
+.profile_container {
+    display: flex;
+    background-color: var(--second-main-color);
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 60px 80px;
+    border-radius: 40px;
+}
+
+.container {
+    display: flex;
+    margin-bottom: 50px;
+}
+
+.img {
+    width: 160px;
+    height: 160px;
+    border: none;
+    border-radius: 80px;
+    background-image: url("../../ProfileImage.jpg");
+    background-size: cover;
+    background-position: center;
+}
+
+.button_container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile_info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    margin-left: 80px;
+}
+
+.fio {
+    font-size: 35px;
+    font-weight: bold;
+}
+
+.age,
+.email {
+    font-size: 25px;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 200;
+}

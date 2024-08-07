@@ -21,4 +21,26 @@ export default class API {
         .then(response => response.json())
         .then(data => data)
     }
+
+    static async getUserById(id) {
+        return await fetch(`http://localhost:8080/api/customer/${id}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => response.json())
+        .then(data => data)
+    }
+
+    static async getPostsByCustomerId(id) {
+        return await fetch(`http://localhost:8080/api/post/${id}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => response.json())
+        .then(data => data)
+    }
 }

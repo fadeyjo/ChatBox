@@ -1,6 +1,7 @@
 const express = require("express");
 
 const customerRouter = require("./routes/customer.route");
+const postRouter = require("./routes/post.route");
 
 const PORT = process.env.PORT || 8080;
 
@@ -14,5 +15,6 @@ app.use((req, res, next) => {
   });
 app.use(express.json());
 app.use("/api", customerRouter);
+app.use("/api", postRouter);
 
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

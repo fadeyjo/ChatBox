@@ -30,6 +30,54 @@ class CustomerController {
             });
         }
     }
+
+    async authCustomer(req, res) {
+        const [email, password] = req.headers.authorization.split(" ").slice(1, 3);
+        const passwordCandidateCustomer = (await db.query(
+            `SELECT password FROM customer WHERE email = $1`,
+            [email]
+        )).rows;
+        if (passwordCandidateCustomer.length === 0) {
+            res.json({
+                error: "There is no user with this email address"
+            })
+        }
+        else if (await bcryptjs.compare(password, passwordCandidateCustomer[0].password)) {
+            const {id, surname, name, patronymic, birthday} = (await db.query(
+                `SELECT * FROM customer WHERE email = $1`,
+                [email]
+            )).rows[0];
+            res.json({
+                id,
+                surname,
+                name,
+                patronymic,
+                birthday,
+                email
+            });
+        }
+        else {
+            res.json({
+                error: "Invalid password"
+            });
+        }
+    }
+
+    async getUserById(req, res) {
+        const id = req.params.id;
+        const {surname, name, patronymic, birthday, email} = (await db.query(
+            `SELECT surname, name, patronymic, birthday, email FROM customer WHERE id = $1`,
+            [id]
+        )).rows[0];
+        res.json({
+            id,
+            surname,
+            name,
+            patronymic,
+            birthday,
+            email
+        })
+    }
 }
 
 module.exports = new CustomerController();

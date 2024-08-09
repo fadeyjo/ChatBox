@@ -53,12 +53,18 @@ export default function ProfilePage() {
 				customerToRender={customerToRender}
 				id={id}
 				setPosts={setPosts}
+				customerMainId={customer.id}
 			/>
 			<PostsList
 				posts={posts}
 				customerToRender={customerToRender}
 			/>
-			<Link to="/profile/14">1</Link>
+			<Link to="/profile/1">1</Link>
+			<Link to="/profile/2">2</Link>
+			<Link to="/profile/3">3</Link>
+			<Link to="/profile/4">4</Link>
+			<Link to="/profile/5">5</Link>
+			<Link to="/profile/6">6</Link>
 		</>
 	);
 }

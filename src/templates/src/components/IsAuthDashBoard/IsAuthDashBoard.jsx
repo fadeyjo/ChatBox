@@ -1,11 +1,13 @@
-import { Outlet } from "react-router-dom";
-import AuthHeader from "../AuthHeader/AuthHeader";
+import { Outlet } from 'react-router-dom';
+import AuthHeader from '../AuthHeader/AuthHeader';
+import SideBar from '../SideBar/SideBar';
 
 export default function IsAuthDashBoard() {
-    return (
-        <>
-            <AuthHeader />
-            <Outlet />
-        </>
-    )
+	return (
+		<>
+			<AuthHeader />
+			<SideBar />
+			<Outlet />
+		</>
+	);
 }

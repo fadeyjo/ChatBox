@@ -57,7 +57,48 @@ export default class API {
 				content,
 			}),
 		})
-        .then(response => response.json())
-        .then(data => data);
+			.then((response) => response.json())
+			.then((data) => data);
+	}
+
+	static async subscribeOn(subscriberId, onWhoSubscribeId) {
+		return await fetch('http://localhost:8080/api/subscriber', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				subscriberId,
+				onWhoSubscribeId,
+			}),
+		})
+			.then((response) => response.json())
+			.then((data) => data);
+	}
+
+	static async isFriendsOrCustomerSubscribe(customerId, secondId) {
+		return fetch(`http://localhost:8080/api/subscriber/${customerId}/${secondId}`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		})
+			.then((response) => response.json())
+			.then((data) => data.friendsOrCustomerSubscribe);
+	}
+
+	static async deleteFromFriend(customerId, deletableFriendId) {
+		return fetch('http://localhost:8080/api/subscriber', {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				customerId,
+				deletableFriendId,
+			}),
+		})
+			.then((response) => response.json())
+			.then((data) => data.friendsOrCustomerSubscribe);
 	}
 }

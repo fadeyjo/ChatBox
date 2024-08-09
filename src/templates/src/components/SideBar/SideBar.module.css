@@ -1,0 +1,22 @@
+.navigate {
+	position: fixed;
+	top: 150px;
+	left: 60px;
+}
+
+.ul {
+	list-style-type: none;
+	height: 250px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.link {
+    text-decoration: none;
+    font-size: 25px;
+}
+
+.link:hover {
+    transform: scale(1.05);
+}

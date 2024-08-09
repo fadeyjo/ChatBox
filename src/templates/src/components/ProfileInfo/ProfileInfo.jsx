@@ -2,10 +2,21 @@ import s from './ProfileInfo.module.css';
 import MyLink from '../UI/MyLink/MyLink';
 import Button from '../UI/Button/Button';
 import CreatePostModalWindow from '../CreatePostModalWindow/CreatePostModalWindow';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import API from '../../API';
 
-export default function ProfileInfo({ customerToRender, id, setPosts }) {
+export default function ProfileInfo({ customerToRender, id, setPosts, customerMainId }) {
 	const [open, setOpen] = useState(false);
+	const [switchRerender, setSwitchRerender] = useState(false);
+	const [isFriendsOrCustomerSubscribe, setIsFriendsOrCustomerSubscribe] = useState(false);
+
+	useEffect(() => {
+		if (id) {
+			(async () => {
+				setIsFriendsOrCustomerSubscribe(await API.isFriendsOrCustomerSubscribe(customerMainId, id));
+			})();
+		}
+	}, [id, switchRerender]);
 
 	const [years, birthday] = (() => {
 		const todayDate = new Date();
@@ -34,7 +45,29 @@ export default function ProfileInfo({ customerToRender, id, setPosts }) {
 			</div>
 			<div className={s.button_container}>
 				<MyLink>Friends</MyLink>
-				{id ? null : <Button onClick={() => setOpen(true)}>Create post</Button>}
+				{id ? (
+					isFriendsOrCustomerSubscribe ? (
+						<Button
+							onClick={async () => {
+								await API.deleteFromFriend(customerMainId, id);
+								setSwitchRerender((prev) => !prev);
+							}}
+						>
+							Unsubscribe
+						</Button>
+					) : (
+						<Button
+							onClick={async () => {
+								await API.subscribeOn(customerMainId, id);
+								setSwitchRerender((prev) => !prev);
+							}}
+						>
+							Add to friends
+						</Button>
+					)
+				) : (
+					<Button onClick={() => setOpen(true)}>Create post</Button>
+				)}
 				<MyLink>Subscribers</MyLink>
 			</div>
 			<CreatePostModalWindow

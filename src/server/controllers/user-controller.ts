@@ -5,6 +5,7 @@ import IRegistrationUserBody from "../interfaces/IRegistrationUserBody";
 import ApiError from "../exceptions/ApiError";
 import mailService from "../services/mail-service";
 import ILoginingUser from "../interfaces/ILoginingUser";
+import tokensService from "../services/tokens-service";
 
 class UserController {
     async registration(req: Request, res: Response, next: NextFunction) {
@@ -49,6 +50,23 @@ class UserController {
         }
     }
 
+    async logout(req: Request, res: Response, next: NextFunction) {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                throw ApiError.BadRequest(
+                    "Refresh token is required in cookies",
+                    errors.array()
+                );
+            }
+            const refreshToken = String(req.cookies.refreshToken);
+            const refreshTokenData = await tokensService.logout(refreshToken);
+            res.clearCookie("refreshToken").json({ ...refreshTokenData });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     async getUserById(req: Request, res: Response, next: NextFunction) {
         try {
             const errors = validationResult(req);
@@ -57,6 +75,20 @@ class UserController {
             }
             const userId = Number(req.params.userId);
             const userData = await userService.getUserById(userId);
+            res.json({ ...userData });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async refresh(req: Request, res: Response, next: NextFunction) {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                throw ApiError.UnauthorizedError();
+            }
+            const refreshToken = String(req.cookies.refreshToken);
+            const userData = await tokensService.refresh(refreshToken);
             res.json({ ...userData });
         } catch (error) {
             next(error);

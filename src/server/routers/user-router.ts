@@ -1,6 +1,6 @@
 import { Router } from "express";
 import userController from "../controllers/user-controller";
-import { body, param } from "express-validator";
+import { body, check, param } from "express-validator";
 import authMiddleware from "../middlewares/auth-middleware";
 
 const userRouter = Router();
@@ -55,5 +55,11 @@ userRouter.get(
     authMiddleware,
     userController.getUserById
 );
+userRouter.post(
+    "/logout",
+    check("refreshToken").isLength({ min: 1 }),
+    userController.logout
+);
+userRouter.get("/refresh", userController.refresh);
 
 export default userRouter;

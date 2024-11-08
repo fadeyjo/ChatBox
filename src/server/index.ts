@@ -12,6 +12,8 @@ import subscribersPageOwnersRouter from "./routers/subscribersPageOwners-router"
 import repostRouter from "./routers/repost-router";
 import friendshipRouter from "./routers/friendship-router";
 import messageRouter from "./routers/message-router";
+import { schedule } from "node-cron";
+import tokensService from "./services/tokens-service";
 
 config();
 
@@ -37,6 +39,7 @@ const PORT = Number(process.env.SERVER_PORT) || 8080;
 
 const start = async () => {
     try {
+        schedule("* * * * *", async () => await tokensService.sheduleToken());
         app.listen(PORT, () =>
             console.log(`[server] started on PORT = ${PORT}`)
         );

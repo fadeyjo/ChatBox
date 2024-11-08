@@ -2,7 +2,6 @@ import db from "../db";
 import UserDto from "../dtos/user-dto";
 import ApiError from "../exceptions/ApiError";
 import ICodeFromDataBase from "../interfaces/ICodeFromDataBase";
-import IUserFromDataBase from "../interfaces/IUserFromDataBase";
 import userService from "./user-service";
 
 class ActivationCodeService {

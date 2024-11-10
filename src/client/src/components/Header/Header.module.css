@@ -1,0 +1,25 @@
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background-color: var(--header-bg-color);
+    padding: 0 16%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logout {
+    font-size: 40px;
+    font-weight: bold;
+    color: var(--header-logout-color);
+    transition: all 0.3s ease;
+}
+
+.logout:hover {
+    cursor: pointer;
+    color: var(--header-hover-logout-color);
+    transform: scale(1.1);
+}

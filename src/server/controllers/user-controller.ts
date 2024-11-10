@@ -89,7 +89,7 @@ class UserController {
             }
             const refreshToken = String(req.cookies.refreshToken);
             const userData = await tokensService.refresh(refreshToken);
-            res.json({ ...userData });
+            res.cookie("refreshToken", userData.refreshToken).json({ ...userData });
         } catch (error) {
             next(error);
         }

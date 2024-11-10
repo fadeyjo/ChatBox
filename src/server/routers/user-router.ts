@@ -49,17 +49,21 @@ userRouter.post(
     body("password").isLength({ min: 8, max: 50 }),
     userController.login
 );
+userRouter.delete(
+    "/logout",
+    check("refreshToken").isLength({ min: 1 }),
+    userController.logout
+);
+userRouter.get(
+    "/refresh",
+    check("refreshToken").isLength({ min: 1 }),
+    userController.refresh
+);
 userRouter.get(
     "/:userId",
     param("userId").isNumeric(),
     authMiddleware,
     userController.getUserById
 );
-userRouter.post(
-    "/logout",
-    check("refreshToken").isLength({ min: 1 }),
-    userController.logout
-);
-userRouter.get("/refresh", userController.refresh);
 
 export default userRouter;

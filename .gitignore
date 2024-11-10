@@ -1,2 +1,3 @@
 /src/server/node_modules/*
 /src/server/.env
+/src/client/node_modules/*

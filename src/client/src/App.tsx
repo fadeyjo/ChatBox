@@ -6,12 +6,14 @@ export default function App() {
     return (
         <BrowserRouter>
             <Header />
-            <Routes>
-                <Route
-                    path="/authentication"
-                    element={<AuthenticationPage />}
-                />
-            </Routes>
+            <div className="content">
+                <Routes>
+                    <Route
+                        path="/authentication"
+                        element={<AuthenticationPage />}
+                    />
+                </Routes>
+            </div>
         </BrowserRouter>
     );
 }

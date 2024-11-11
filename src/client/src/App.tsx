@@ -1,8 +1,23 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthenticationPage } from "./components/AuthenticationPage/AuthenticationPage";
 import { Header } from "./components/Header/Header";
+import { useContext, useEffect } from "react";
+import { Context } from ".";
+import { observer } from "mobx-react-lite";
 
-export default function App() {
+function App() {
+    const { store } = useContext(Context);
+
+    useEffect(() => {
+        if (localStorage.getItem("accessToken")) {
+            store.checkAuthorization();
+        }
+    }, [store]);
+
+    if (store.isAuth) {
+        return <div>is auth</div>;
+    }
+
     return (
         <BrowserRouter>
             <Header />
@@ -17,3 +32,5 @@ export default function App() {
         </BrowserRouter>
     );
 }
+
+export default observer(App);

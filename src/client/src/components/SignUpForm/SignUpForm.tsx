@@ -1,11 +1,15 @@
-import React from "react";
+import React, { useContext } from "react";
 import s from "./SignUpForm.module.css";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { FormikInput } from "../formik/FormikInput/FormikInput";
 import ISignUp from "../../interfaces/IForms/ISignUp";
+import { Context } from "../..";
+import { observer } from "mobx-react-lite";
 
-export const SignUpForm: React.FC = () => {
+const SignUpForm: React.FC = () => {
+    const { store } = useContext(Context);
+
     const validationSchema = Yup.object({
         lastName: Yup.string()
             .required("Last name is required")
@@ -58,7 +62,7 @@ export const SignUpForm: React.FC = () => {
                 "Passwords aren't equal",
                 function (repeatPassword) {
                     const password = String(this.parent.password);
-                    return password == repeatPassword;
+                    return password === repeatPassword;
                 }
             )
             .min(8, "Must be longer")
@@ -77,6 +81,7 @@ export const SignUpForm: React.FC = () => {
         },
         onSubmit: (values) => {
             console.log(values);
+            store.registration(values);
         },
         validationSchema,
     });
@@ -98,3 +103,5 @@ export const SignUpForm: React.FC = () => {
         </form>
     );
 };
+
+export default observer(SignUpForm);

@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useContext } from "react";
 import s from "./SignInForm.module.css";
 import { useFormik } from "formik";
 import ISignIn from "../../interfaces/IForms/ISignIn";
 import * as Yup from "yup";
 import { FormikInput } from "../formik/FormikInput/FormikInput";
+import { Context } from "../..";
 
 export const SignInForm: React.FC = () => {
+    const { store } = useContext(Context);
+
     const validationSchema = Yup.object({
         email: Yup.string()
             .email("Invalid email format")
@@ -19,7 +22,7 @@ export const SignInForm: React.FC = () => {
             password: "",
         },
         onSubmit: (values) => {
-            console.log(values);
+            store.login(values);
         },
         validationSchema,
     });

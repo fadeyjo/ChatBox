@@ -1,11 +1,13 @@
 :root {
-    --header-bg-color: #1A73E8;
+    --header-bg-color: #1a73e8;
     --header-logout-color: #000000;
-    --header-logo-bg-color: #E0F3FF;
-    --header-hover-logo-bg-color: #D0F7FF;
+    --header-logo-bg-color: #e0f3ff;
+    --header-hover-logo-bg-color: #d0f7ff;
     --header-hover-box-shadow-logo-color: rgba(0, 0, 0, 0.1);
-    --header-hover-logo-color: #1A73E8;
+    --header-hover-logo-color: #1a73e8;
     --header-hover-logout-color: #003366;
+    --modal-bg-color: rgba(0, 0, 0, 0.5);
+    --modal-window-bg-color: #ffffff;
 }
 
 * {

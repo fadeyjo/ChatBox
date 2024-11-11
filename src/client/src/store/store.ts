@@ -24,7 +24,7 @@ export default class Store {
 
     async registration(newUser: IRegistration) {
         try {
-            await UserService.registration(newUser);
+            const response = await UserService.registration(newUser);
         } catch (error: any) {
             console.log(error.response?.data?.message);
         }
@@ -32,7 +32,7 @@ export default class Store {
 
     async login(user: ILogin) {
         try {
-            await UserService.login(user);
+            const response = await UserService.login(user);
         } catch (error: any) {
             console.log(error.response?.data?.message);
         }
@@ -40,7 +40,7 @@ export default class Store {
 
     async logout() {
         try {
-            await UserService.logout();
+            const response = await UserService.logout();
         } catch (error: any) {
             console.log(error.response?.data?.message);
         }

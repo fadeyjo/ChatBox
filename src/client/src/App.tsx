@@ -24,7 +24,7 @@ function App() {
             <div className="content">
                 <Routes>
                     <Route
-                        path="/authentication"
+                        path="/"
                         element={<AuthenticationPage />}
                     />
                 </Routes>

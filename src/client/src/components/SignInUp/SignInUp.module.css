@@ -1,0 +1,68 @@
+.container {
+    width: 750px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: auto;
+}
+
+.auth_buttons_container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 80px;
+    width: 100%;
+}
+
+.auth_buttons_container:hover {
+    cursor: pointer;
+}
+
+.auth_buttons {
+    background-color: #f0f0f0;
+    color: #666666;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #000000;
+    box-sizing: border-box;
+    font-size: 30px;
+    font-weight: 600;
+}
+
+.auth_buttons.sign_in_button:not(.selected) {
+    border-right: 0;
+}
+
+.auth_buttons.sign_up_button:not(.selected) {
+    border-left: 0;
+}
+
+.sign_in_button {
+    border-top-left-radius: 40px;
+}
+
+.sign_up_button {
+    border-top-right-radius: 40px;
+}
+
+.selected {
+    color: #1a73e8;
+    background-color: #ffffff;
+    border-bottom: none;
+}
+
+.selected_form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    background-color: #ffffff;
+    border: 1px solid #000000;
+    border-top: 0;
+    box-sizing: border-box;
+    border-bottom-left-radius: 40px;
+    border-bottom-right-radius: 40px;
+}

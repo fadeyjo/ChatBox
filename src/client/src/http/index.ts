@@ -1,5 +1,5 @@
 import axios from "axios";
-import IRefreshTokens from "../interfaces/IResponses/IRefreshTokens";
+import IRefreshTokens from "../interfaces/IResponses/IUserRefreshTokens";
 
 export const API_URL = "http://localhost:8080";
 

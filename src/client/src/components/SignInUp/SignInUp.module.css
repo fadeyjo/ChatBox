@@ -1,5 +1,5 @@
 .container {
-    width: 750px;
+    width: 600px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -10,7 +10,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 80px;
+    height: 60px;
     width: 100%;
 }
 
@@ -28,12 +28,14 @@
     justify-content: center;
     border: 1px solid #000000;
     box-sizing: border-box;
-    font-size: 30px;
+    font-size: 25px;
     font-weight: 600;
 }
-
-.auth_buttons.sign_in_button:not(.selected) {
-    border-right: 0;
+.error {
+    height: 15px;
+    margin: 2px 0 10px 0;
+    color: #ff0000;
+    font-size: 20px;
 }
 
 .auth_buttons.sign_up_button:not(.selected) {

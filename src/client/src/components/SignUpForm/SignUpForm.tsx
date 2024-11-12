@@ -5,13 +5,12 @@ import { useFormik } from "formik";
 import { FormikInput } from "../formik/FormikInput/FormikInput";
 import ISignUp from "../../interfaces/IForms/ISignUp";
 import { Context } from "../..";
-import { observer } from "mobx-react-lite";
 import { FormButton } from "../UI/FormButton/FormButton";
-import { ModalWindow } from "../ModalWindow/ModalWindow";
-import { CodeForm } from "../CodeForm/CodeForm";
+import ISignInUp from "../../interfaces/IProps/ISignInUp";
+import { observer } from "mobx-react-lite";
 
-const SignUpForm: React.FC = () => {
-    const [isOpened, setIsOpend] = useState(false);
+const SignUpForm: React.FC<ISignInUp> = ({ setIsOpened, setEmail }) => {
+    const [error, setError] = useState("");
 
     const { store } = useContext(Context);
 
@@ -85,8 +84,7 @@ const SignUpForm: React.FC = () => {
             repeatPassword: "",
         },
         onSubmit: (values) => {
-            console.log(values);
-            store.registration(values);
+            store.registration(values, setError, setIsOpened, setEmail);
         },
         validationSchema,
     });
@@ -100,6 +98,7 @@ const SignUpForm: React.FC = () => {
                     formik={formik}
                     type="text"
                     name="lastName"
+                    onChange={() => setError("")}
                 />
                 <FormikInput
                     placeholder="First name"
@@ -107,6 +106,7 @@ const SignUpForm: React.FC = () => {
                     formik={formik}
                     type="text"
                     name="firstName"
+                    onChange={() => setError("")}
                 />
                 <FormikInput
                     placeholder="Patronymic (if available)"
@@ -114,6 +114,7 @@ const SignUpForm: React.FC = () => {
                     formik={formik}
                     type="text"
                     name="patronymic"
+                    onChange={() => setError("")}
                 />
                 <FormikInput
                     placeholder="Email"
@@ -121,6 +122,7 @@ const SignUpForm: React.FC = () => {
                     formik={formik}
                     type="email"
                     name="email"
+                    onChange={() => setError("")}
                 />
                 <FormikInput
                     placeholder="Nickname"
@@ -128,6 +130,7 @@ const SignUpForm: React.FC = () => {
                     formik={formik}
                     type="text"
                     name="nickname"
+                    onChange={() => setError("")}
                 />
                 <FormikInput
                     placeholder="Password"
@@ -135,6 +138,7 @@ const SignUpForm: React.FC = () => {
                     formik={formik}
                     type="password"
                     name="password"
+                    onChange={() => setError("")}
                 />
                 <FormikInput
                     placeholder="Repeat password"
@@ -142,18 +146,11 @@ const SignUpForm: React.FC = () => {
                     type="password"
                     name="repeatPassword"
                     className={s.input}
+                    onChange={() => setError("")}
                 />
-                <FormButton onClick={() => setIsOpend(true)} type="submit">
-                    Sign Up
-                </FormButton>
+                <div className={s.error}>{error}</div>
+                <FormButton type="submit">Sign Up</FormButton>
             </form>
-            <ModalWindow
-                isOpened={isOpened}
-                setIsOpened={setIsOpend}
-                header="Code send to your email"
-            >
-                <CodeForm isOPened={isOpened} />
-            </ModalWindow>
         </>
     );
 };

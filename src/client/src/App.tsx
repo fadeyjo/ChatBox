@@ -12,7 +12,7 @@ function App() {
         if (localStorage.getItem("accessToken")) {
             store.checkAuthorization();
         }
-    }, [store]);
+    }, []);
 
     if (store.isAuth) {
         return <div>is auth</div>;
@@ -23,10 +23,7 @@ function App() {
             <Header />
             <div className="content">
                 <Routes>
-                    <Route
-                        path="/"
-                        element={<AuthenticationPage />}
-                    />
+                    <Route path="/" element={<AuthenticationPage />} />
                 </Routes>
             </div>
         </BrowserRouter>

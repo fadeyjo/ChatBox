@@ -21,6 +21,8 @@ class CodeController {
             await tokensService.saveToken(userData.userId, tokens.refreshToken);
             res.cookie("refreshToken", tokens.refreshToken, {
                 httpOnly: true,
+                secure: true,
+                sameSite: "none",
                 maxAge:
                     Number(process.env.LIVING_TIME_REFRESH_TOKEN_COOKIE) ||
                     2592000000,

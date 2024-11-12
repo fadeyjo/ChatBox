@@ -1,4 +1,4 @@
-import React, { lazy, useContext, useState } from "react";
+import React, { useContext, useState } from "react";
 import s from "./SignInForm.module.css";
 import { useFormik } from "formik";
 import ISignIn from "../../interfaces/IForms/ISignIn";
@@ -6,13 +6,12 @@ import * as Yup from "yup";
 import { FormikInput } from "../formik/FormikInput/FormikInput";
 import { Context } from "../..";
 import { FormButton } from "../UI/FormButton/FormButton";
-import { ModalWindow } from "../ModalWindow/ModalWindow";
-import { CodeForm } from "../CodeForm/CodeForm";
+import ISignInUp from "../../interfaces/IProps/ISignInUp";
+import { observer } from "mobx-react-lite";
 
-export const SignInForm: React.FC = () => {
-    const [isOpened, setIsOpened] = useState(false);
-
+const SignInForm: React.FC<ISignInUp> = ({ setIsOpened, setEmail }) => {
     const { store } = useContext(Context);
+    const [error, setError] = useState("");
 
     const validationSchema = Yup.object({
         email: Yup.string()
@@ -27,7 +26,7 @@ export const SignInForm: React.FC = () => {
             password: "",
         },
         onSubmit: (values) => {
-            store.login(values);
+            store.login(values, setError, setIsOpened, setEmail);
         },
         validationSchema,
     });
@@ -41,6 +40,7 @@ export const SignInForm: React.FC = () => {
                     formik={formik}
                     type="email"
                     name="email"
+                    onChange={() => setError("")}
                 />
                 <FormikInput
                     placeholder="Password"
@@ -48,25 +48,13 @@ export const SignInForm: React.FC = () => {
                     formik={formik}
                     type="password"
                     name="password"
+                    onChange={() => setError("")}
                 />
-                <FormButton
-                    onClick={() => {
-                        if (!formik.errors.email && !formik.errors.password) {
-                            setIsOpened(true);
-                        }
-                    }}
-                    type="submit"
-                >
-                    Sign In
-                </FormButton>
+                <div className={s.error}>{error}</div>
+                <FormButton type="submit">Sign In</FormButton>
             </form>
-            <ModalWindow
-                isOpened={isOpened}
-                setIsOpened={setIsOpened}
-                header="Code send to your email"
-            >
-                <CodeForm isOPened={isOpened} />
-            </ModalWindow>
         </>
     );
 };
+
+export default observer(SignInForm);

@@ -7,12 +7,14 @@ export const FormikInput = <T extends object>({
     type,
     className,
     placeholder,
+    onChange,
 }: {
     formik: FormikProps<T>;
     type: string;
     name: keyof T;
     className: string;
     placeholder: string;
+    onChange: () => void;
 }) => {
     return (
         <>
@@ -21,7 +23,10 @@ export const FormikInput = <T extends object>({
                 className={className}
                 name={String(name)}
                 type={type}
-                onChange={formik.handleChange}
+                onChange={(event) => {
+                    formik.handleChange(event);
+                    onChange();
+                }}
                 onBlur={formik.handleBlur}
                 value={String(formik.values[name] ?? "")}
             />

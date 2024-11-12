@@ -1,7 +1,7 @@
 import IUser from "./IUser";
 
-export default interface IRefreshTokens {
+export default interface IRefresh {
     accessToken: string;
     refreshToken: string;
-    user: IUser;
+    userData: IUser;
 }

@@ -1,3 +1,5 @@
 export default interface ICodeForm {
-    isOPened: boolean;
+    isOpened: boolean;
+    length: number;
+    email: string;
 }

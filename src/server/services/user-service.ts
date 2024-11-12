@@ -14,7 +14,7 @@ class UserService {
         }
         const userByNickname = await this.getUserByNickname(newUser.nickname);
         if (userByNickname) {
-            throw ApiError.BadRequest("User with this email already exists");
+            throw ApiError.BadRequest("User with this nickname already exists");
         }
         const userData = await this.insertNewUser(newUser);
         return userData;
@@ -23,12 +23,12 @@ class UserService {
     async login(loginingUser: ILoginingUser) {
         const userByEmail = await this.getUserByEmail(loginingUser.email);
         if (!userByEmail) {
-            throw ApiError.BadRequest("User with this email not found");
+            throw ApiError.BadRequest("No user with this email address");
         }
         if (
             !(await compare(loginingUser.password, userByEmail.hashed_password))
         ) {
-            throw ApiError.BadRequest("Wrong password");
+            throw ApiError.BadRequest("Invalid password");
         }
         return new UserDto(userByEmail);
     }
@@ -57,12 +57,10 @@ class UserService {
 
     async getUserById(userId: number) {
         const userById: IUserFromDataBase[] = (
-            await db.query(`SELECT * FROM users WHERE user_id = $1`, [
-                userId,
-            ])
+            await db.query(`SELECT * FROM users WHERE user_id = $1`, [userId])
         ).rows;
         if (userById.length == 0) {
-            throw ApiError.ResourseNotFound()
+            throw ApiError.ResourseNotFound();
         }
         return new UserDto(userById[0]);
     }
@@ -93,14 +91,12 @@ class UserService {
 
     async userIsExistsById(userId: number) {
         const userById: IUserFromDataBase[] = (
-            await db.query(`SELECT * FROM users WHERE user_id = $1`, [
-                userId,
-            ])
+            await db.query(`SELECT * FROM users WHERE user_id = $1`, [userId])
         ).rows;
         if (userById.length == 0) {
-            return false
+            return false;
         }
-        return true
+        return true;
     }
 }
 

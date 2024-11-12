@@ -6,6 +6,9 @@ import ApiError from "../exceptions/ApiError";
 import mailService from "../services/mail-service";
 import ILoginingUser from "../interfaces/ILoginingUser";
 import tokensService from "../services/tokens-service";
+import { config } from "dotenv";
+
+config();
 
 class UserController {
     async registration(req: Request, res: Response, next: NextFunction) {
@@ -17,11 +20,10 @@ class UserController {
             const newUser: IRegistrationUserBody = req.body;
             if (newUser.password != newUser.repeatPassword) {
                 throw ApiError.BadRequest(
-                    "Passwords aren't equal",
-                    errors.array()
+                    "Different passwords have been entered"
                 );
             }
-            const newUserResponse = await userService.insertNewUser(newUser);
+            const newUserResponse = await userService.registration(newUser);
             await mailService.sendCode(
                 newUserResponse.email,
                 newUserResponse.userId
@@ -89,7 +91,14 @@ class UserController {
             }
             const refreshToken = String(req.cookies.refreshToken);
             const userData = await tokensService.refresh(refreshToken);
-            res.cookie("refreshToken", userData.refreshToken).json({
+            res.cookie("refreshToken", userData.refreshToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                maxAge:
+                    Number(process.env.LIVING_TIME_REFRESH_TOKEN_COOKIE) ||
+                    2592000000,
+            }).json({
                 ...userData,
             });
         } catch (error) {

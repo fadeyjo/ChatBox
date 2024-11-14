@@ -13,10 +13,16 @@ subscribersPageOwnersRouter.post(
     subscribersPageOwnersController.newSubscribersPageOwners
 );
 subscribersPageOwnersRouter.get(
-    "/:pageOwnerId",
+    "/subscribers/:pageOwnerId",
     param("pageOwnerId").isNumeric(),
     authMiddleware,
     subscribersPageOwnersController.getSubscribersPageOwnersByPageOwnerId
+);
+subscribersPageOwnersRouter.get(
+    "/subscribes/:subscriberId",
+    param("subscriberId").isNumeric(),
+    authMiddleware,
+    subscribersPageOwnersController.getSubscribesBySubscriberId
 );
 subscribersPageOwnersRouter.delete(
     "/:subscriberId/:pageOwnerId",

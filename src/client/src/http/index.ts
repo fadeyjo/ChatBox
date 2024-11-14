@@ -1,7 +1,7 @@
 import axios from "axios";
 import IRefreshTokens from "../interfaces/IResponses/IUserRefreshTokens";
 
-export const API_URL = "http://localhost:8080";
+export const API_URL = "http://localhost:8080/api";
 
 const $api = axios.create({
     withCredentials: true,
@@ -34,7 +34,7 @@ $api.interceptors.response.use(
             originalRequest._isRetry = true;
             try {
                 const response = await axios.get<IRefreshTokens>(
-                    `${API_URL}/api/user/refresh`,
+                    `${API_URL}/user/refresh`,
                     {
                         withCredentials: true,
                     }

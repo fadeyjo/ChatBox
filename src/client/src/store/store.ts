@@ -5,7 +5,6 @@ import UserService from "../services/user-service";
 import { API_URL } from "../http";
 import ILogin from "../interfaces/IRequests/ILogin";
 import CodeService from "../services/code-service";
-import { Dispatch } from "react";
 import IRefresh from "../interfaces/IResponses/IRefresh";
 import axios from "axios";
 
@@ -145,7 +144,7 @@ export default class Store {
     async checkAuthorization() {
         try {
             const response = await axios.get<IRefresh>(
-                `${API_URL}/api/user/refresh`,
+                `${API_URL}/user/refresh`,
                 {
                     withCredentials: true,
                 }

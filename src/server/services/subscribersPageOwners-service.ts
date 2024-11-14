@@ -66,7 +66,23 @@ class SubscribersPageOwnersService {
                 [subscriberId, pageOwnerId]
             )
         ).rows[0];
-        return new SubscribersPageOwnersDto(subscribersPageOwnersData)
+        return new SubscribersPageOwnersDto(subscribersPageOwnersData);
+    }
+
+    async getSubscribesBySubscriberId(subscriberId: number) {
+        if (!(await userService.userIsExistsById(subscriberId))) {
+            throw ApiError.BadRequest("Subscriber with this id isn't found");
+        }
+        const subscribesData: ISubscribersPageOwnersFromDataBase[] = (
+            await db.query(
+                "SELECT * FROM subscribers_page_owners WHERE subscriber_id = $1",
+                [subscriberId]
+            )
+        ).rows;
+        return subscribesData.map(
+            (subscribersPageOwners) =>
+                new SubscribersPageOwnersDto(subscribersPageOwners)
+        );
     }
 
     async subscribersPageOwnersIsExist(

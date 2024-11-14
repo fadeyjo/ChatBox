@@ -5,7 +5,7 @@ import { Context } from ".";
 import { observer } from "mobx-react-lite";
 import { NotAuthHeader } from "./components/NotAuthHeader/NotAuthHeader";
 import AuthHeader from "./components/AuthHeader/AuthHeader";
-import { SelfProfilePage } from "./components/SelfProfilePage/SelfProfilePage";
+import SelfProfilePage from "./components/SelfProfilePage/SelfProfilePage";
 import { SideBar } from "./components/SideBar/SideBar";
 
 function App() {

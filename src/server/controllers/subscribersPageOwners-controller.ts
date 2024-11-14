@@ -15,7 +15,8 @@ class SubscribersPageOwnersController {
             if (!errors.isEmpty()) {
                 throw ApiError.BadRequest("Incorrect body", errors.array());
             }
-            const { subscriberId, pageOwnerId }: INewSubscribersPageOwners = req.body;
+            const { subscriberId, pageOwnerId }: INewSubscribersPageOwners =
+                req.body;
             const subscribersPageOwnersData =
                 await subscribersPageOwnersService.newSubscribersPageOwners(
                     subscriberId,
@@ -44,6 +45,30 @@ class SubscribersPageOwnersController {
             const subscribersPageOwners =
                 await subscribersPageOwnersService.getSubscribersPageOwnersByPageOwnerId(
                     pageOwnerId
+                );
+            res.json({ subscribersPageOwners });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getSubscribesBySubscriberId(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                throw ApiError.BadRequest(
+                    "Incorrect subscriber id",
+                    errors.array()
+                );
+            }
+            const subscriberId = Number(req.params.subscriberId);
+            const subscribersPageOwners =
+                await subscribersPageOwnersService.getSubscribesBySubscriberId(
+                    subscriberId
                 );
             res.json({ subscribersPageOwners });
         } catch (error) {

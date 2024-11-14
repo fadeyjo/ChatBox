@@ -7,6 +7,9 @@ import mailService from "../services/mail-service";
 import ILoginingUser from "../interfaces/ILoginingUser";
 import tokensService from "../services/tokens-service";
 import { config } from "dotenv";
+import profileImageService from "../services/profileImage-service";
+import { basename, dirname, extname, join } from "path";
+import { createReadStream, readFileSync } from "fs";
 
 config();
 
@@ -46,6 +49,40 @@ class UserController {
                 loginingUserResponse.email,
                 loginingUserResponse.userId
             );
+
+            const filePath = join(__dirname, "../public/defaultProfileImage.png");
+
+            const fileBuffer = readFileSync(filePath);
+
+            const ext = extname(filePath).toLowerCase();
+            let mimeType = "";
+            if (ext === ".jpg") {
+                mimeType = "image/jpg";
+            } else if (ext === ".png") {
+                mimeType = "image/png";
+            } else if (ext === ".jpeg") {
+                mimeType = "image/jpeg";
+            } else {
+                throw ApiError.BadRequest("Unsupported file type");
+            }
+
+            const file: Express.Multer.File = {
+                fieldname: "image",
+                originalname: basename(filePath),
+                encoding: "7bit",
+                mimetype: mimeType,
+                buffer: fileBuffer,
+                size: fileBuffer.length,
+                stream: createReadStream(filePath),
+                destination: dirname(filePath),
+                filename: basename(filePath),
+                path: filePath,
+            };
+            await profileImageService.newProfileImage(
+                file,
+                loginingUserResponse.userId
+            );
+
             res.json({ ...loginingUserResponse });
         } catch (error) {
             next(error);

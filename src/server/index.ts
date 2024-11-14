@@ -14,6 +14,7 @@ import friendshipRouter from "./routers/friendship-router";
 import messageRouter from "./routers/message-router";
 import { schedule } from "node-cron";
 import tokensService from "./services/tokens-service";
+import profileImageRouter from "./routers/profileImage-router";
 
 config();
 
@@ -37,6 +38,7 @@ app.use("/api/subscribersPageOwners", subscribersPageOwnersRouter);
 app.use("/api/repost", repostRouter);
 app.use("/api/friendship", friendshipRouter);
 app.use("/api/message", messageRouter);
+app.use("/api/profileImage", profileImageRouter);
 
 app.use(errorMiddleware);
 

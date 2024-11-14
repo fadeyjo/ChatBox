@@ -1,0 +1,14 @@
+.side_bar_element {
+    font-size: 25px;
+    color: #333333;
+    font-weight: 500;
+    padding: 4px 15px;
+    display: flex;
+    align-items: center;
+}
+
+.side_bar_element:hover {
+    background-color: rgba(128, 128, 128, 0.5);
+    border-radius: 10px;
+    cursor: pointer;
+}

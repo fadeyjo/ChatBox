@@ -6,88 +6,96 @@ import { observer } from "mobx-react-lite";
 
 const CodeForm: React.FC<ICodeForm> = ({ isOpened, length, email }) => {
     const [error, setError] = useState("");
-
     const { store } = useContext(Context);
-
     const [inputs, setInputs] = useState<string[]>(Array(length).fill(""));
     const refs = useRef<(HTMLInputElement | null)[]>(Array(length).fill(null));
 
     useEffect(() => {
         if (isOpened) {
             refs.current[0]?.focus();
+        } else {
+            clearInputs();
+            setError("");
         }
     }, [isOpened]);
 
-    const block = (refIndex: number) => {
-        const ref = refs.current[refIndex];
-        if (ref) {
-            const length = ref.value.length;
-            ref.setSelectionRange(length, length);
+    const clearInputs = () => {
+        setInputs((prev) => prev.map(() => ""));
+    };
+
+    const findCurrentStateValue = (index: number, eventValue: string) => {
+        for (let i = 0; i < inputs.length; i++) {
+            if (i !== index) {
+                continue;
+            }
+            if (inputs[i] === "") {
+                return eventValue;
+            }
+            if (eventValue !== "") {
+                if (eventValue[0] === inputs[i]) {
+                    return eventValue[1];
+                }
+                return eventValue[0];
+            }
+            return eventValue;
         }
+        return "";
     };
 
     return (
         <div className={s.code_input}>
-            {inputs.map((input, index) => (
-                <input
-                    className={s.code}
-                    key={index}
-                    ref={(ref) => (refs.current[index] = ref)}
-                    type="text"
-                    value={input}
-                    onKeyDown={() => block(index)}
-                    onMouseDown={() => block(index)}
-                    onFocus={() => block(index)}
-                    onChange={(event) => {
-                        setError("");
-                        const eventValue = event.target.value;
-                        if (index + 1 !== inputs.length && eventValue != "") {
-                            refs.current[index + 1]?.focus();
-                        }
-                        setInputs((prev) =>
-                            prev.map((inputValue, inputIndex) =>
-                                inputIndex === index
-                                    ? eventValue.length == 2
-                                        ? eventValue[0] == inputValue
-                                            ? eventValue.slice(1)
-                                            : eventValue.slice(0, 1)
-                                        : eventValue === "" || inputValue == ""
-                                        ? eventValue
+            <div className={s.inputs}>
+                {inputs.map((input, index) => (
+                    <input
+                        className={s.code}
+                        key={index}
+                        ref={(ref) => (refs.current[index] = ref)}
+                        type="text"
+                        value={input}
+                        onChange={(event) => {
+                            setError("");
+                            const eventValue = event.target.value;
+                            let currentStateValue = findCurrentStateValue(
+                                index,
+                                eventValue
+                            );
+                            setInputs((prev) =>
+                                prev.map((inputValue, inputIndex) =>
+                                    inputIndex === index
+                                        ? currentStateValue
                                         : inputValue
-                                    : inputValue
-                            )
-                        );
-                        const bufInputs = inputs.map((input) =>
-                            input === "" ? "!" : input
-                        );
-                        if (eventValue.length < 2) {
-                            bufInputs[index] = eventValue;
-                        }
-                        if (eventValue === "") {
-                            bufInputs[index] = "!";
-                        }
-                        const code = bufInputs.join("");
-                        if (new RegExp("^[0-9]{6}$").test(code)) {
-                            try {
-                                store.checkCode(
-                                    email,
-                                    Number(code),
-                                    refs.current,
-                                    setError,
-                                    setInputs
-                                );
-                            } catch (error) {
-                                setError("Incorrect code format");
+                                )
+                            );
+                            const nextRef = refs.current[index + 1];
+                            if (eventValue.length !== 2 && nextRef) {
+                                nextRef.focus();
                             }
-                        } else if (
-                            !new RegExp("^[0-9]{6}$").test(code) &&
-                            !code.includes("!")
-                        ) {
-                            setError("Incorrect code format");
-                        }
-                    }}
-                />
-            ))}
+                            const stringCode = inputs
+                                .map((inputValue, inputIndex) =>
+                                    inputIndex === index
+                                        ? currentStateValue
+                                        : inputValue
+                                )
+                                .join("");
+                            if (stringCode.length === inputs.length) {
+                                if (
+                                    !new RegExp("^[0-9]{6}$").test(stringCode)
+                                ) {
+                                    setError("Incorrect code format");
+                                } else {
+                                    store.checkCode(
+                                        email,
+                                        Number(Number(stringCode)),
+                                        refs.current,
+                                        setError,
+                                        clearInputs
+                                    );
+                                }
+                            }
+                        }}
+                    />
+                ))}
+            </div>
             <div className={s.error}>{error}</div>
         </div>
     );

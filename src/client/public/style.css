@@ -17,9 +17,18 @@
 }
 
 body {
-    margin: 0 16%;
+    margin: 0 13%;
+    background-color: #F5F5F5;
 }
 
-.content {
-    margin-top: 100px;
+.content, .auth_content_sidebar {
+    margin-top: 140px;
+}
+
+.auth_content_sidebar {
+    display: flex;
+}
+
+.auth_content {
+    flex: 1;
 }

@@ -103,7 +103,7 @@ export default class Store {
         code: number,
         refs: (HTMLInputElement | null)[],
         setError: (error: string) => void,
-        setInputs: Dispatch<React.SetStateAction<string[]>>
+        clearInputs: () => void
     ) {
         try {
             const response = await CodeService.checkCode(email, code);
@@ -122,7 +122,7 @@ export default class Store {
         } catch (error: any) {
             for (let i = 0; i < refs.length; i++) {
                 if (refs[i]) {
-                    setInputs((prev) => prev.map(() => ""));
+                    clearInputs();
                 }
             }
             if (refs[0]) {

@@ -1,0 +1,31 @@
+.avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 20px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.comment {
+    border-top: 1px solid rgba(0, 0, 0, 0.3);
+    display: flex;
+    margin-top: 20px;
+    padding-top: 20px;
+}
+
+.fio_content_date_time {
+    margin-left: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.fio {
+    font-size: 17px;
+}
+
+.date_time {
+    color: #777777;
+    font-size: 15px;
+}

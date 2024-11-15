@@ -8,7 +8,7 @@ class PostController {
     async newPost(req: Request, res: Response, next: NextFunction) {
         try {
             const newPost: INewPost = req.body;
-            const authorId = res.locals.userData.userId;
+            const authorId = Number(res.locals.userData.userId);
             const newPostData = await postService.newPost(newPost, authorId);
             res.json({ ...newPostData });
         } catch (error) {
@@ -30,6 +30,20 @@ class PostController {
         }
     }
 
+    async getPostBytId(req: Request, res: Response, next: NextFunction) {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                throw ApiError.BadRequest("Incorrect post id", errors.array());
+            }
+            const postId = Number(req.params.postId);
+            const postData = await postService.getPostById(postId);
+            res.json({ ...postData });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     async deletePost(req: Request, res: Response, next: NextFunction) {
         try {
             const errors = validationResult(req);
@@ -39,6 +53,24 @@ class PostController {
             const postId = Number(req.params.postId);
             const post = await postService.deletePostById(postId);
             res.json({ ...post });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getPostsByChildrenPostId(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                throw ApiError.BadRequest("Incorrect children post id", errors.array());
+            }
+            const childrenPostId = Number(req.params.childrenPostId);
+            const posts = await postService.getPostsByChildrenPostId(childrenPostId);
+            res.json({ posts });
         } catch (error) {
             next(error);
         }

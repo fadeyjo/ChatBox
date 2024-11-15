@@ -1,49 +1,42 @@
-import React, {
-    ChangeEvent,
-    useContext,
-    useEffect,
-    useRef,
-    useState,
-} from "react";
+import React, { ChangeEvent, useContext, useEffect, useState } from "react";
 import s from "./SelfProfilePage.module.css";
 import ProfileImageService from "../../services/profileImage-service";
 import { Context } from "../..";
 import { observer } from "mobx-react-lite";
 import { ModalWindow } from "../ModalWindow/ModalWindow";
-import FriendshipService from "../../services/friendship-service";
-import SubscribersPageOwnersService from "../../services/subscribersPageOwners-service";
+import { FormButton } from "../UI/FormButton/FormButton";
+import PostService from "../../services/post-service";
+import IGetPost from "../../interfaces/IResponses/IGetPost";
+import ProfileInfo from "../ProfileInfo/ProfileInfo";
+import Post from "../Post/Post";
 
 const SelfProfilePage: React.FC = () => {
     const [error, setError] = useState("");
     const { store } = useContext(Context);
     const [imageSrc, setImageSrc] = useState<string>("");
-    const [friendsAmount, setFriendsAmount] = useState(0);
-    const [subscribersAmount, setSubscribersAmount] = useState(0);
-    const [subscribesAmount, setSubscribesAmount] = useState(0);
     const [file, setFile] = useState<File>();
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [isOpened, setIsOpened] = useState(false);
+    const [posts, setPosts] = useState<IGetPost[]>([]);
 
     useEffect(() => {
-        const profileImageData = ProfileImageService.getProfileImage(
-            store.user.userId
-        )
+        ProfileImageService.getProfileImage(store.user.userId)
             .then((response) => response)
             .then((data) => setImageSrc(data.data.src));
-        FriendshipService.getFriendshipsByUserId(store.user.userId)
-            .then((response) => response)
-            .then((data) => setFriendsAmount(data.data.friendships.length));
-        SubscribersPageOwnersService.getSubscribersByUserId(store.user.userId)
-            .then((response) => response)
-            .then((data) =>
-                setSubscribersAmount(data.data.subscribersPageOwners.length)
-            );
-        SubscribersPageOwnersService.getSubscribesByUserId(store.user.userId)
-            .then((response) => response)
-            .then((data) =>
-                setSubscribesAmount(data.data.subscribersPageOwners.length)
-            );
     }, [file]);
+
+    useEffect(() => {
+        PostService.getPostsByUserId(store.user.userId)
+            .then((response) => response)
+            .then((data) =>
+                setPosts(
+                    data.data.posts.sort((first, second) => {
+                        const dateFirst = new Date(first.publicationDateTime);
+                        const dateSecond = new Date(second.publicationDateTime);
+                        return dateSecond.getTime() - dateFirst.getTime();
+                    })
+                )
+            );
+    }, []);
 
     const setImage = async (event: ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
@@ -68,36 +61,28 @@ const SelfProfilePage: React.FC = () => {
 
     return (
         <>
-            <div className={s.profile_info}>
-                <div
-                    className={s.profile_image}
-                    onClick={() => fileInputRef.current?.click()}
-                    style={{ backgroundImage: `url(${imageSrc})` }}
-                ></div>
-                <div className={s.fio_email}>
-                    <div className={s.fio}>
-                        {[
-                            store.user.lastName,
-                            store.user.firstName,
-                            store.user.patronymic,
-                        ].join(" ")}
-                    </div>
-                    <div className={s.email}>@{store.user.nickname}</div>
-                    <div className={s.other_info}>
-                        <div>{friendsAmount} friends</div>
-                        <div>{subscribersAmount} subscribers</div>
-                        <div>{subscribesAmount} subscribes</div>
-                    </div>
-                </div>
+            <div className={s.profile}>
+                <ProfileInfo
+                    user={store.user}
+                    setImage={setImage}
+                    imageSrc={imageSrc}
+                />
+                <FormButton type="button">Create post</FormButton>
             </div>
 
-            <input
-                className={s.file_input}
-                type="file"
-                accept=".jpg, .jpeg, .png"
-                ref={fileInputRef}
-                onChange={setImage}
-            />
+            {posts.length !== 0 && (
+                <div className={s.posts}>
+                    {posts.map((post) => (
+                        <Post
+                            isChild={false}
+                            post={post}
+                            key={post.postId}
+                            setPosts={setPosts}
+                        />
+                    ))}
+                </div>
+            )}
+
             <ModalWindow
                 isOpened={isOpened}
                 setIsOpened={setIsOpened}

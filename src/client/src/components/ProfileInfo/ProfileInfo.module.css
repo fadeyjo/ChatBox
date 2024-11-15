@@ -1,0 +1,57 @@
+.profile_image,
+.profile_image_other {
+    width: 200px;
+    height: 200px;
+    background-position: center 20%;
+    background-repeat: no-repeat;
+    border-radius: 80px;
+    background-size: cover;
+}
+
+.profile_info {
+    display: flex;
+    width: 700px;
+    justify-content: space-around;
+}
+
+.profile_image:hover {
+    cursor: pointer;
+}
+
+.fio {
+    font-size: 35px;
+    color: #000000;
+    font-weight: 600;
+}
+
+.email {
+    font-size: 25px;
+    color: #000000;
+    font-weight: 500;
+}
+
+.fio_email {
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.other_info {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    font-size: 25px;
+}
+
+.column {
+    height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.file_input {
+    display: none;
+}

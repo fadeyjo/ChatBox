@@ -12,9 +12,11 @@ class MessageController {
                 throw ApiError.BadRequest("Incorrect body", errors.array());
             }
             const senderId = Number(res.locals.userData.userId);
-            const { content, recipientId }: INewMessage = req.body;
+            const { content, recipientId, childrenMessageId }: INewMessage =
+                req.body;
             const messageData = await messageService.newMessage(
                 content,
+                childrenMessageId,
                 senderId,
                 recipientId
             );
@@ -32,7 +34,7 @@ class MessageController {
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
-                throw ApiError.BadRequest("", errors.array());
+                throw ApiError.BadRequest("Second user id is null", errors.array());
             }
             const firstUserId = Number(res.locals.userData.userId);
             const secondUserId = Number(req.params.secondUserId);
@@ -41,6 +43,26 @@ class MessageController {
                 secondUserId
             );
             res.json({ messages });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getMessageById(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                throw ApiError.BadRequest("Incorrect message id", errors.array());
+            }
+            const messageId = Number(req.params.messageId);
+            const messages = await messageService.getMessageById(
+                messageId
+            );
+            res.json({ ...messages });
         } catch (error) {
             next(error);
         }

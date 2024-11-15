@@ -6,14 +6,18 @@ import IUser from "../interfaces/IResponses/IUser";
 
 export default class UserService {
     static async registration(newUser: IRegistration) {
-        return $api.post<IUser>("/user/registration", { ...newUser });
+        return await $api.post<IUser>("/user/registration", { ...newUser });
     }
 
     static async login(user: ILogin) {
-        return $api.post<IUser>("/user/login", { ...user });
+        return await $api.post<IUser>("/user/login", { ...user });
     }
 
     static async logout() {
-        return $api.delete<IToken>("/user/logout");
+        return await $api.delete<IToken>("/user/logout");
+    }
+
+    static async getUserById(userId: number) {
+        return await $api.get<IUser>(`/user/${userId}`);
     }
 }

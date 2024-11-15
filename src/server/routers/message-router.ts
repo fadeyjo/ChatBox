@@ -13,6 +13,12 @@ messageRouter.post(
     messageController.newMessage
 );
 messageRouter.get(
+    "/redirect/:messageId",
+    param("messageId").isNumeric(),
+    authMiddleware,
+    messageController.getMessageById
+);
+messageRouter.get(
     "/:secondUserId",
     param("secondUserId").isNumeric(),
     authMiddleware,

@@ -9,6 +9,7 @@ import PostService from "../../services/post-service";
 import IGetPost from "../../interfaces/IResponses/IGetPost";
 import ProfileInfo from "../ProfileInfo/ProfileInfo";
 import Post from "../Post/Post";
+import { NewPostForm } from "../NewPostForm/NewPostForm";
 
 const SelfProfilePage: React.FC = () => {
     const [error, setError] = useState("");
@@ -17,6 +18,7 @@ const SelfProfilePage: React.FC = () => {
     const [file, setFile] = useState<File>();
     const [isOpened, setIsOpened] = useState(false);
     const [posts, setPosts] = useState<IGetPost[]>([]);
+    const [createPostIsOpened, setCreatePostIsOpened] = useState(false);
 
     useEffect(() => {
         ProfileImageService.getProfileImage(store.user.userId)
@@ -36,7 +38,7 @@ const SelfProfilePage: React.FC = () => {
                     })
                 )
             );
-    }, []);
+    }, [posts]);
 
     const setImage = async (event: ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
@@ -67,13 +69,20 @@ const SelfProfilePage: React.FC = () => {
                     setImage={setImage}
                     imageSrc={imageSrc}
                 />
-                <FormButton type="button">Create post</FormButton>
+                <FormButton
+                    onClick={() => setCreatePostIsOpened(true)}
+                    className={s.create_post_button}
+                    type="button"
+                >
+                    Create post
+                </FormButton>
             </div>
 
             {posts.length !== 0 && (
                 <div className={s.posts}>
                     {posts.map((post) => (
                         <Post
+                        imageSrc={imageSrc}
                             isChild={false}
                             post={post}
                             key={post.postId}
@@ -89,6 +98,13 @@ const SelfProfilePage: React.FC = () => {
                 header="Error to set profile image"
             >
                 <div className={s.error}>{error}</div>
+            </ModalWindow>
+            <ModalWindow
+                isOpened={createPostIsOpened}
+                setIsOpened={setCreatePostIsOpened}
+                header="New post"
+            >
+                <NewPostForm setIsOpened={setCreatePostIsOpened} setPosts={setPosts} />
             </ModalWindow>
         </>
     );

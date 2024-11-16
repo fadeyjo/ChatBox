@@ -15,6 +15,10 @@
     font-size: 40px;
 }
 
+.close:hover {
+    cursor: pointer;
+}
+
 .left_border {
     border-left: 2px solid rgba(0, 0, 0, 0.3);
     border-radius: 0;

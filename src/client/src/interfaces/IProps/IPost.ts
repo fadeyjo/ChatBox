@@ -5,4 +5,5 @@ export default interface IPost {
     post: IGetPost;
     isChild: boolean;
     setPosts?: Dispatch<React.SetStateAction<IGetPost[]>>;
+    imageSrc?: string;
 }

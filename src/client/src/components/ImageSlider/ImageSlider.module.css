@@ -1,0 +1,36 @@
+.slider_container {
+    position: relative;
+    margin-top: 20px;
+}
+.left_button {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 50px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.slider_image {
+    width: 100%;
+    aspect-ratio: 1;
+    background-size: cover;
+    background-position: center;
+    transition: background-image 0.3s ease-in-out;
+    border-radius: 30px;
+}
+
+.right_button {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 50px;
+    color: rgba(255, 255, 255, 0.8);
+}

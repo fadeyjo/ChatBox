@@ -16,7 +16,10 @@ export default class PostService {
         );
     }
 
-    static async newPost(content: string, childrenPostId: number | null) {
+    static async newPost(
+        content: string,
+        childrenPostId: number | null = null
+    ) {
         return await $api.post<IGetPost>("/post", { content, childrenPostId });
     }
 

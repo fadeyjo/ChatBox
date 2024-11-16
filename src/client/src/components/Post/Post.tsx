@@ -20,29 +20,39 @@ import { Context } from "../..";
 import { FaDirections } from "react-icons/fa";
 import { observer } from "mobx-react-lite";
 import { IoClose } from "react-icons/io5";
+import PostImageService from "../../services/postImage-service";
+import ImageSlider from "../ImageSlider/ImageSlider";
 
 const Post: React.FC<IPost> = ({ post, isChild, setPosts }) => {
     const [childrenPost, setChildrenPost] = useState<JSX.Element | null>(null);
     const [authorProfileImage, setAuthorProfileImage] = useState("");
     const [comments, setComments] = useState<IGetComment[]>([]);
     const [author, setAuthor] = useState({} as IUser);
-    const [allComments, setAllComments] = useState(false);
+    const [allComments, setAllComments] = useState<boolean | null>(null);
     const [newComment, setNewComment] = useState("");
     const [isReaction, setIsReaction] = useState(false);
     const [reactions, setReactions] = useState<IGetReaction[]>([]);
     const { store } = useContext(Context);
     const [reposts, setReposts] = useState<IGetPost[]>([]);
+    const [postImages, setPostImages] = useState<string[]>([]);
 
     const asyncEffect = async () => {
+        const data = (await PostImageService.getPostImages(post.postId)).data
+            .postImages;
+        setPostImages(data);
         const authorData = (await UserService.getUserById(post.postAuthorId))
             .data;
         setAuthor(authorData);
 
         if (post.childrenPostId) {
-            const childPost: IGetPost = (
-                await PostService.getPostById(post.childrenPostId)
-            ).data;
-            setChildrenPost(<Post isChild={true} post={childPost} />);
+            try {
+                const childPost: IGetPost = (
+                    await PostService.getPostById(post.childrenPostId)
+                ).data;
+                setChildrenPost(<Post isChild={true} post={childPost} />);
+            } catch (error) {
+                setChildrenPost(<div>Post was deleted</div>);
+            }
         }
 
         setAuthorProfileImage(
@@ -104,6 +114,7 @@ const Post: React.FC<IPost> = ({ post, isChild, setPosts }) => {
                 </div>
             </div>
             <div className={s.post_content}>{post.content}</div>
+            <ImageSlider images={postImages} />
             {childrenPost}
             {isChild
                 ? null
@@ -199,8 +210,8 @@ const Post: React.FC<IPost> = ({ post, isChild, setPosts }) => {
                                           .then((response) => response.data)
                                           .then((data) =>
                                               setReactions((prev) => [
-                                                  ...prev,
                                                   data,
+                                                  ...prev,
                                               ])
                                           );
                                       setIsReaction(true);
@@ -214,22 +225,27 @@ const Post: React.FC<IPost> = ({ post, isChild, setPosts }) => {
                         )}{" "}
                         {reactions.length}{" "}
                     </div>
-                    <div
-                        className={s.reposts_amount}
-                        onClick={() => {
-                            PostService.newPost("Пися", post.postId)
-                                .then((response) => response.data)
-                                .then((data) => {
-                                    if (setPosts) {
-                                        setPosts((prev) => [data, ...prev]);
-                                        setReposts((prev) => [data, ...prev]);
-                                    }
-                                });
-                        }}
-                    >
-                        <FaDirections className={s.repost_button} />{" "}
-                        {reposts.length}
-                    </div>
+                    {post.postAuthorId !== store.user.userId ? (
+                        <div
+                            className={s.reposts_amount}
+                            onClick={() => {
+                                PostService.newPost("Пися", post.postId)
+                                    .then((response) => response.data)
+                                    .then((data) => {
+                                        if (setPosts) {
+                                            setPosts((prev) => [data, ...prev]);
+                                            setReposts((prev) => [
+                                                data,
+                                                ...prev,
+                                            ]);
+                                        }
+                                    });
+                            }}
+                        >
+                            <FaDirections className={s.repost_button} />{" "}
+                            {reposts.length}
+                        </div>
+                    ) : null}
                 </div>
             )}
             {isChild ? null : (
@@ -244,6 +260,15 @@ const Post: React.FC<IPost> = ({ post, isChild, setPosts }) => {
                                         prev.filter(
                                             (postData) =>
                                                 postData.postId !== data.postId
+                                        )
+                                    );
+                            })
+                            .catch((error) => {
+                                if (setPosts)
+                                    setPosts((prev) =>
+                                        prev.filter(
+                                            (postData) =>
+                                                postData.postId !== post.postId
                                         )
                                     );
                             });

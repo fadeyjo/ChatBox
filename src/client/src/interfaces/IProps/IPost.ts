@@ -6,4 +6,6 @@ export default interface IPost {
     isChild: boolean;
     setPosts?: Dispatch<React.SetStateAction<IGetPost[]>>;
     imageSrc?: string;
+    setCreatePostIsOpened?: Dispatch<React.SetStateAction<boolean>>;
+    setRepost?: Dispatch<React.SetStateAction<IGetPost | null>>;
 }

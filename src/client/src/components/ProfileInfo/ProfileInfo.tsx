@@ -1,52 +1,64 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import s from "./ProfileInfo.module.css";
 import IProfileInfo from "../../interfaces/IProps/IProfileInfo";
-import { Context } from "../..";
 import classNames from "classnames";
-import { observer } from "mobx-react-lite";
 import FriendshipService from "../../services/friendship-service";
 import SubscribersPageOwnersService from "../../services/subscribersPageOwners-service";
+import IUser from "../../interfaces/IResponses/IUser";
+import UserService from "../../services/user-service";
 
 const ProfileInfo: React.FC<IProfileInfo> = ({
-    user,
+    userId,
     imageSrc,
     setImage,
+    isSelfPage,
+    isFriend,
+    isSubscriber,
+    isSubscribes,
 }) => {
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const { store } = useContext(Context);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const [friendsAmount, setFriendsAmount] = useState(0);
     const [subscribersAmount, setSubscribersAmount] = useState(0);
     const [subscribesAmount, setSubscribesAmount] = useState(0);
+    const [user, setUser] = useState({} as IUser);
 
     useEffect(() => {
-        FriendshipService.getFriendshipsByUserId(store.user.userId)
+        FriendshipService.getFriendshipsByUserId(userId)
             .then((response) => response)
-            .then((data) => setFriendsAmount(data.data.friendships.length));
+            .then((data) => setFriendsAmount(data.data.friendships.length))
+            .catch((error) => {});
 
-        SubscribersPageOwnersService.getSubscribersByUserId(store.user.userId)
+        SubscribersPageOwnersService.getSubscribersByUserId(userId)
             .then((response) => response)
             .then((data) =>
                 setSubscribersAmount(data.data.subscribersPageOwners.length)
-            );
+            )
+            .catch((error) => {});
 
-        SubscribersPageOwnersService.getSubscribesByUserId(store.user.userId)
+        SubscribersPageOwnersService.getSubscribesByUserId(userId)
             .then((response) => response)
             .then((data) =>
                 setSubscribesAmount(data.data.subscribersPageOwners.length)
-            );
-    }, [])
+            )
+            .catch((error) => {});
+    }, [isFriend, isSubscriber, isSubscribes]);
+
+    useEffect(() => {
+        UserService.getUserById(userId)
+            .then((response) => response.data)
+            .then((data) => setUser(data));
+    }, []);
 
     return (
         <div className={s.profile_info}>
             <div
                 className={classNames({
-                    [s.profile_image]: user.userId === store.user.userId,
-                    [s.profile_image_other]: user.userId !== store.user.userId,
+                    [s.profile_image]: isSelfPage,
+                    [s.profile_image_other]: !isSelfPage,
                 })}
                 onClick={
-                    user.userId === store.user.userId
-                        ? () => fileInputRef.current?.click()
-                        : () => {}
+                    isSelfPage ? () => fileInputRef.current?.click() : () => {}
                 }
                 style={{ backgroundImage: `url(${imageSrc})` }}
             ></div>
@@ -61,17 +73,17 @@ const ProfileInfo: React.FC<IProfileInfo> = ({
                     <div>{subscribesAmount} subscribes</div>
                 </div>
             </div>
-            <input
-                className={s.file_input}
-                type="file"
-                accept=".jpg, .jpeg, .png"
-                ref={fileInputRef}
-                onChange={
-                    user.userId === store.user.userId ? setImage : () => {}
-                }
-            />
+            {isSelfPage ? (
+                <input
+                    className={s.file_input}
+                    type="file"
+                    accept=".jpg, .jpeg, .png"
+                    ref={fileInputRef}
+                    onChange={setImage}
+                />
+            ) : null}
         </div>
     );
 };
 
-export default observer(ProfileInfo)
+export default ProfileInfo;

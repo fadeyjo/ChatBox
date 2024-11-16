@@ -9,7 +9,7 @@ import UserService from "../../services/user-service";
 import ProfileImageService from "../../services/profileImage-service";
 import classNames from "classnames";
 import IGetComment from "../../interfaces/IResponses/IGetComment";
-import { Comment } from "../Comment/Comment";
+import Comment from "../Comment/Comment";
 import CommentService from "../../services/comment-service";
 import { BiSend } from "react-icons/bi";
 import { FcLikePlaceholder } from "react-icons/fc";
@@ -23,7 +23,14 @@ import { IoClose } from "react-icons/io5";
 import PostImageService from "../../services/postImage-service";
 import ImageSlider from "../ImageSlider/ImageSlider";
 
-const Post: React.FC<IPost> = ({ post, isChild, setPosts }) => {
+const Post: React.FC<IPost> = ({
+    post,
+    isChild,
+    setPosts,
+    setCreatePostIsOpened,
+    setRepost,
+    imageSrc,
+}) => {
     const [childrenPost, setChildrenPost] = useState<JSX.Element | null>(null);
     const [authorProfileImage, setAuthorProfileImage] = useState("");
     const [comments, setComments] = useState<IGetComment[]>([]);
@@ -37,28 +44,19 @@ const Post: React.FC<IPost> = ({ post, isChild, setPosts }) => {
     const [postImages, setPostImages] = useState<string[]>([]);
 
     const asyncEffect = async () => {
-        const data = (await PostImageService.getPostImages(post.postId)).data
-            .postImages;
-        setPostImages(data);
+        setPostImages(
+            (await PostImageService.getPostImages(post.postId)).data.postImages
+        );
         const authorData = (await UserService.getUserById(post.postAuthorId))
             .data;
         setAuthor(authorData);
 
         if (post.childrenPostId) {
-            try {
-                const childPost: IGetPost = (
-                    await PostService.getPostById(post.childrenPostId)
-                ).data;
-                setChildrenPost(<Post isChild={true} post={childPost} />);
-            } catch (error) {
-                setChildrenPost(<div>Post was deleted</div>);
-            }
+            const childPost: IGetPost = (
+                await PostService.getPostById(post.childrenPostId)
+            ).data;
+            setChildrenPost(<Post isChild={true} post={childPost} />);
         }
-
-        setAuthorProfileImage(
-            (await ProfileImageService.getProfileImage(authorData.userId)).data
-                .src
-        );
 
         if (!isChild) {
             setComments(
@@ -91,6 +89,12 @@ const Post: React.FC<IPost> = ({ post, isChild, setPosts }) => {
         asyncEffect();
     }, []);
 
+    useEffect(() => {
+        ProfileImageService.getProfileImage(post.postAuthorId)
+            .then((response) => response.data)
+            .then((data) => setAuthorProfileImage(data.src));
+    }, [imageSrc]);
+
     return (
         <div className={classNames(s.post, { [s.left_border]: isChild })}>
             <div className={s.post_header}>
@@ -122,15 +126,23 @@ const Post: React.FC<IPost> = ({ post, isChild, setPosts }) => {
                       if (allComments || comments.length <= 2)
                           return (
                               <Comment
+                                  isMyPost={
+                                      store.user.userId === post.postAuthorId
+                                  }
                                   comment={comment}
                                   key={comment.commentId}
+                                  setComments={setComments}
                               />
                           );
                       if (index <= 1)
                           return (
                               <Comment
+                                  isMyPost={
+                                      store.user.userId === post.postAuthorId
+                                  }
                                   comment={comment}
                                   key={comment.commentId}
+                                  setComments={setComments}
                               />
                           );
                       return null;
@@ -225,30 +237,35 @@ const Post: React.FC<IPost> = ({ post, isChild, setPosts }) => {
                         )}{" "}
                         {reactions.length}{" "}
                     </div>
-                    {post.postAuthorId !== store.user.userId ? (
+                    {
                         <div
-                            className={s.reposts_amount}
-                            onClick={() => {
-                                PostService.newPost("Пися", post.postId)
-                                    .then((response) => response.data)
-                                    .then((data) => {
-                                        if (setPosts) {
-                                            setPosts((prev) => [data, ...prev]);
-                                            setReposts((prev) => [
-                                                data,
-                                                ...prev,
-                                            ]);
-                                        }
-                                    });
-                            }}
+                            className={classNames({
+                                [s.reposts_amount]:
+                                    post.postAuthorId !== store.user.userId,
+                                [s.repost_amount_unself]:
+                                    post.postAuthorId === store.user.userId,
+                            })}
+                            onClick={
+                                post.postAuthorId === store.user.userId
+                                    ? () => {}
+                                    : () => {
+                                          if (
+                                              setCreatePostIsOpened &&
+                                              setRepost
+                                          ) {
+                                              setCreatePostIsOpened(true);
+                                              setRepost(post);
+                                          }
+                                      }
+                            }
                         >
                             <FaDirections className={s.repost_button} />{" "}
                             {reposts.length}
                         </div>
-                    ) : null}
+                    }
                 </div>
             )}
-            {isChild ? null : (
+            {isChild || post.postAuthorId !== store.user.userId ? null : (
                 <IoClose
                     className={s.close}
                     onClick={() => {

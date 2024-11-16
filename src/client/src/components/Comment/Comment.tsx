@@ -1,12 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import s from "./Comment.module.css";
 import IComment from "../../interfaces/IProps/IComment";
 import IUser from "../../interfaces/IResponses/IUser";
 import UserService from "../../services/user-service";
 import ProfileImageService from "../../services/profileImage-service";
 import DateTimeService from "../../services/dateTime-service";
+import { IoClose } from "react-icons/io5";
+import { Context } from "../..";
+import { observer } from "mobx-react-lite";
+import CommentService from "../../services/comment-service";
 
-export const Comment: React.FC<IComment> = ({ comment }) => {
+const Comment: React.FC<IComment> = ({ comment, isMyPost, setComments }) => {
+    const { store } = useContext(Context);
+
     const [user, setUser] = useState<IUser>({} as IUser);
     const [avatar, setAvatar] = useState("");
 
@@ -44,6 +50,22 @@ export const Comment: React.FC<IComment> = ({ comment }) => {
                 </div>
                 <div>{comment.content}</div>
             </div>
+            {comment.commentAuthorId === store.user.userId || isMyPost ? (
+                <IoClose
+                    className={s.close}
+                    onClick={async () => {
+                        await CommentService.deleteComment(comment.commentId);
+                        setComments((prev) =>
+                            prev.filter(
+                                (commentData) =>
+                                    commentData.commentId !== comment.commentId
+                            )
+                        );
+                    }}
+                />
+            ) : null}
         </div>
     );
 };
+
+export default observer(Comment);

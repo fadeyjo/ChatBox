@@ -9,6 +9,8 @@ import INewPostForm from "../../interfaces/IProps/INewPostForm";
 export const NewPostForm: React.FC<INewPostForm> = ({
     setPosts,
     setIsOpened,
+    repost,
+    setRepost,
 }) => {
     const [content, setContent] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -64,14 +66,37 @@ export const NewPostForm: React.FC<INewPostForm> = ({
                 />
             </div>
             <FormButton
-                onClick={async () => {
-                    const post = (await PostService.newPost(content)).data;
-                    await PostImageService.newPostImages(files, post.postId);
-                    setContent("");
-                    setFiles([]);
-                    setIsOpened(false);
-                    setPosts((prev) => [post, ...prev]);
-                }}
+                onClick={
+                    repost
+                        ? async () => {
+                              const post = (
+                                  await PostService.newPost(
+                                      content,
+                                      repost.postId
+                                  )
+                              ).data;
+                              await PostImageService.newPostImages(
+                                  files,
+                                  post.postId
+                              );
+                              setRepost(null)
+                              setContent("");
+                              setFiles([]);
+                              setIsOpened(false);
+                          }
+                        : async () => {
+                              const post = (await PostService.newPost(content))
+                                  .data;
+                              await PostImageService.newPostImages(
+                                  files,
+                                  post.postId
+                              );
+                              setContent("");
+                              setFiles([]);
+                              setIsOpened(false);
+                              setPosts((prev) => [post, ...prev]);
+                          }
+                }
                 type="button"
             >
                 Create post

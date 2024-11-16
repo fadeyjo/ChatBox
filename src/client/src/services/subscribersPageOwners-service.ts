@@ -13,4 +13,23 @@ export default class SubscribersPageOwnersService {
             `/subscribersPageOwners/subscribes/${userId}`
         );
     }
+
+    static async newSubscribersPageOwners(
+        subscriberId: number,
+        pageOwnerId: number
+    ) {
+        return await $api.post<IGetSubscribers>("/subscribersPageOwners/", {
+            subscriberId,
+            pageOwnerId,
+        });
+    }
+
+    static async deleteSubscribersPageOwners(
+        subscriberId: number,
+        pageOwnerId: number
+    ) {
+        return await $api.delete<IGetSubscribers>(
+            `/subscribersPageOwners/${subscriberId}/${pageOwnerId}`
+        );
+    }
 }

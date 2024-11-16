@@ -12,6 +12,18 @@
     display: flex;
     margin-top: 20px;
     padding-top: 20px;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 30px;
+}
+
+.close:hover {
+    cursor: pointer;
 }
 
 .fio_content_date_time {

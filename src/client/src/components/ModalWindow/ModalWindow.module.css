@@ -21,7 +21,7 @@
 
 .content {
     background-color: var(--modal-window-bg-color);
-    max-width: 35vw;
+    /* max-width: 35vw; */
     max-height: 70vh;
     padding: 2%;
     display: flex;

@@ -1,6 +1,8 @@
+import { Dispatch } from "react";
 import IGetComment from "../IResponses/IGetComment";
-import IUser from "../IResponses/IUser";
 
 export default interface IComment {
     comment: IGetComment;
+    isMyPost: boolean;
+    setComments: Dispatch<React.SetStateAction<IGetComment[]>>;
 }

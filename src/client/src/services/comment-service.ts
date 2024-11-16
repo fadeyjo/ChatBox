@@ -11,4 +11,8 @@ export default class CommentService {
     static async newComment(content: string, postId: number) {
         return await $api.post<IGetComment>("/comment", { postId, content });
     }
+
+    static async deleteComment(commentId: number) {
+        return await $api.delete<IGetComment>(`/comment/${commentId}`);
+    }
 }

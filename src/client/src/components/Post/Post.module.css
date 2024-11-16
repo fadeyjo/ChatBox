@@ -112,7 +112,8 @@
 }
 
 .reactions_amount,
-.reposts_amount {
+.reposts_amount,
+.repost_amount_unself {
     font-size: 30px;
     display: flex;
     align-items: center;
@@ -120,6 +121,10 @@
     width: 50%;
     padding: 2px 5px;
     border-radius: 15px;
+}
+
+.repost_amount_unself:hover {
+    cursor: auto;
 }
 
 .reactions_amount:hover,

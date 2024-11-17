@@ -9,6 +9,7 @@ import { IoClose } from "react-icons/io5";
 import { Context } from "../..";
 import { observer } from "mobx-react-lite";
 import CommentService from "../../services/comment-service";
+import { useNavigate } from "react-router-dom";
 
 const Comment: React.FC<IComment> = ({ comment, isMyPost, setComments }) => {
     const { store } = useContext(Context);
@@ -31,11 +32,20 @@ const Comment: React.FC<IComment> = ({ comment, isMyPost, setComments }) => {
         loadInfo().then((response) => setAvatar(response));
     }, []);
 
+    const navigate = useNavigate();
+
+    const openPageByAvatar = () => {
+        if (store.user.userId !== comment.commentAuthorId) {
+            navigate(`/${comment.commentAuthorId}`);
+        }
+    };
+
     return (
         <div className={s.comment}>
             <div
                 className={s.avatar}
                 style={{ backgroundImage: `url(${avatar})` }}
+                onClick={openPageByAvatar}
             ></div>
             <div className={s.fio_content_date_time}>
                 <div>

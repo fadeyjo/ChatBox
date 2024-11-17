@@ -22,6 +22,8 @@ import { observer } from "mobx-react-lite";
 import { IoClose } from "react-icons/io5";
 import PostImageService from "../../services/postImage-service";
 import ImageSlider from "../ImageSlider/ImageSlider";
+import { useNavigate } from "react-router-dom";
+import { error } from "console";
 
 const Post: React.FC<IPost> = ({
     post,
@@ -30,6 +32,9 @@ const Post: React.FC<IPost> = ({
     setCreatePostIsOpened,
     setRepost,
     imageSrc,
+    setError,
+    setIsOpened,
+    setErrorHeader,
 }) => {
     const [childrenPost, setChildrenPost] = useState<JSX.Element | null>(null);
     const [authorProfileImage, setAuthorProfileImage] = useState("");
@@ -42,6 +47,14 @@ const Post: React.FC<IPost> = ({
     const { store } = useContext(Context);
     const [reposts, setReposts] = useState<IGetPost[]>([]);
     const [postImages, setPostImages] = useState<string[]>([]);
+
+    const navigate = useNavigate();
+
+    const openPageByAvatar = () => {
+        if (store.user.userId !== post.postAuthorId) {
+            navigate(`/${post.postAuthorId}`);
+        }
+    };
 
     const asyncEffect = async () => {
         setPostImages(
@@ -100,6 +113,7 @@ const Post: React.FC<IPost> = ({
             <div className={s.post_header}>
                 <div
                     className={s.profile_post_image}
+                    onClick={openPageByAvatar}
                     style={{
                         backgroundImage: `url(${authorProfileImage})`,
                     }}
@@ -207,26 +221,72 @@ const Post: React.FC<IPost> = ({
                                       )
                                           .then((response) => response.data)
                                           .then((data) =>
-                                              setReactions((prev) =>
-                                                  prev.filter(
+                                              setReactions((prev) => {
+                                                  setIsReaction(false);
+                                                  return prev.filter(
                                                       (reactionData) =>
                                                           reactionData.reactionId !==
                                                           data.reactionId
-                                                  )
-                                              )
-                                          );
-                                      setIsReaction(false);
+                                                  );
+                                              })
+                                          )
+                                          .catch((error) => {
+                                              if (
+                                                  setPosts &&
+                                                  setError &&
+                                                  setIsOpened &&
+                                                  setErrorHeader
+                                              ) {
+                                                  setPosts((prev) =>
+                                                      prev.filter(
+                                                          (postData) =>
+                                                              postData.postId !==
+                                                              post.postId
+                                                      )
+                                                  );
+                                                  setErrorHeader(
+                                                      "Repost not found"
+                                                  );
+                                                  setError(
+                                                      "Reposted post was deleted. Maybe this was deleted by author."
+                                                  );
+                                                  setIsOpened(true);
+                                              }
+                                          });
                                   }
                                 : () => {
                                       ReactionService.newReaction(post.postId)
                                           .then((response) => response.data)
-                                          .then((data) =>
+                                          .then((data) => {
                                               setReactions((prev) => [
                                                   data,
                                                   ...prev,
-                                              ])
-                                          );
-                                      setIsReaction(true);
+                                              ]);
+                                              setIsReaction(true);
+                                          })
+                                          .catch((error) => {
+                                              if (
+                                                  setPosts &&
+                                                  setError &&
+                                                  setIsOpened &&
+                                                  setErrorHeader
+                                              ) {
+                                                  setPosts((prev) =>
+                                                      prev.filter(
+                                                          (postData) =>
+                                                              postData.postId !==
+                                                              post.postId
+                                                      )
+                                                  );
+                                                  setErrorHeader(
+                                                      "Repost not found"
+                                                  );
+                                                  setError(
+                                                      "Reposted post was deleted. Maybe this was deleted by author."
+                                                  );
+                                                  setIsOpened(true);
+                                              }
+                                          });
                                   }
                         }
                     >
@@ -281,13 +341,24 @@ const Post: React.FC<IPost> = ({
                                     );
                             })
                             .catch((error) => {
-                                if (setPosts)
+                                if (
+                                    setPosts &&
+                                    setError &&
+                                    setIsOpened &&
+                                    setErrorHeader
+                                ) {
                                     setPosts((prev) =>
                                         prev.filter(
                                             (postData) =>
                                                 postData.postId !== post.postId
                                         )
                                     );
+                                    setErrorHeader("Repost not found");
+                                    setError(
+                                        "Reposted post was deleted. Maybe this was deleted by author."
+                                    );
+                                    setIsOpened(true);
+                                }
                             });
                     }}
                 />

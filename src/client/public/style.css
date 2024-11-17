@@ -27,6 +27,7 @@ body {
 
 .auth_content_sidebar {
     display: flex;
+    position: relative;
 }
 
 .auth_content {

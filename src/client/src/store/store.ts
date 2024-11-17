@@ -142,6 +142,7 @@ export default class Store {
     }
 
     async checkAuthorization() {
+        console.log("dasdasasd")
         try {
             const response = await axios.get<IRefresh>(
                 `${API_URL}/user/refresh`,

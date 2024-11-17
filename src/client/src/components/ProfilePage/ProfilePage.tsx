@@ -31,16 +31,16 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
     const [isSubscriber, setIsSubscriber] = useState(false);
     const [isSubscribes, setIsSubscribes] = useState(false);
     const [repost, setRepost] = useState<IGetPost | null>(null);
+    const [errorHeader, setErrorHeader] = useState("");
 
     useEffect(() => {
         ProfileImageService.getProfileImage(userId)
             .then((response) => response.data)
             .then((data) => setImageSrc(data.src));
-    }, [file]);
+    }, [file, userId]);
 
     const setStatus = async () => {
         if (isSelfPage) return;
-        console.log(userId);
         const friendships = (
             await FriendshipService.getFriendshipsByUserId(userId)
         ).data.friendships;
@@ -61,7 +61,14 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
                 setIsSubscribes(true);
                 return;
             }
-            if (subscribers[i].pageOwnerId === store.user.userId) {
+        }
+        const subscribes = (
+            await SubscribersPageOwnersService.getSubscribersByUserId(
+                store.user.userId
+            )
+        ).data.subscribersPageOwners;
+        for (let i = 0; i < subscribes.length; i++) {
+            if (subscribes[i].subscriberId === userId) {
                 setIsSubscriber(true);
                 return;
             }
@@ -84,12 +91,14 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
                 )
             );
         setStatus();
-    }, []);
+        window.scrollTo(0, 0);
+    }, [userId]);
 
     const setImage = async (event: ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
         if (!files || files.length === 0) {
             setError("Not files.");
+            setError("Error to set profile image");
             setIsOpened(true);
             return;
         }
@@ -98,6 +107,7 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
             setError(
                 "Incorrect file format. Select jpg, jpeg or png format file."
             );
+            setError("Error to set profile image");
             setIsOpened(true);
             return;
         }
@@ -204,6 +214,8 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
                             setPosts={setPosts}
                             setRepost={setRepost}
                             setCreatePostIsOpened={setCreatePostIsOpened}
+                            setIsOpened={setIsOpened}
+                            setError={setError}
                         />
                     ))}
                 </div>
@@ -212,7 +224,7 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
             <ModalWindow
                 isOpened={isOpened}
                 setIsOpened={setIsOpened}
-                header="Error to set profile image"
+                header={errorHeader}
             >
                 <div className={s.error}>{error}</div>
             </ModalWindow>
@@ -222,10 +234,13 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
                 header="New post"
             >
                 <NewPostForm
-                    setIsOpened={setCreatePostIsOpened}
+                    setCreatePostIsOpened={setCreatePostIsOpened}
                     setPosts={setPosts}
                     repost={repost}
                     setRepost={setRepost}
+                    setError={setError}
+                    setErrorHeader={setErrorHeader}
+                    setIsOpened={setIsOpened}
                 />
             </ModalWindow>
         </>

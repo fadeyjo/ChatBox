@@ -73,6 +73,7 @@ class UserController {
 
     async login(req: Request, res: Response, next: NextFunction) {
         try {
+            console.log("login")
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 throw ApiError.BadRequest("Incorrect input", errors.array());

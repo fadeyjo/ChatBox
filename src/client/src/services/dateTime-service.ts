@@ -1,6 +1,5 @@
 export default class DateTimeService {
     static formDate(publicationDateTime: string) {
-        console.log(publicationDateTime)
         const [pubDate, time] = publicationDateTime.split(" ");
         const pubTime = time.slice(0, -3);
         const [pubYear, pubMonth, pubDay] = pubDate

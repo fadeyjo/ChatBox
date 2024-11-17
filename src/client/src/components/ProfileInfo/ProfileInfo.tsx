@@ -42,13 +42,13 @@ const ProfileInfo: React.FC<IProfileInfo> = ({
                 setSubscribesAmount(data.data.subscribersPageOwners.length)
             )
             .catch((error) => {});
-    }, [isFriend, isSubscriber, isSubscribes]);
+    }, [isFriend, isSubscriber, isSubscribes, userId]);
 
     useEffect(() => {
         UserService.getUserById(userId)
             .then((response) => response.data)
             .then((data) => setUser(data));
-    }, []);
+    }, [userId]);
 
     return (
         <div className={s.profile_info}>

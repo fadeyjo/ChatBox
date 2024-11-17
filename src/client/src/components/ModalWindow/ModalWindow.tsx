@@ -1,4 +1,4 @@
-import React, { MouseEvent } from "react";
+import React, { MouseEvent, useEffect } from "react";
 import s from "./ModalWindow.module.css";
 import IModalWindow from "../../interfaces/IProps/IModalWindow";
 import classNames from "classnames";
@@ -22,6 +22,14 @@ export const ModalWindow: React.FC<IModalWindow> = ({
     const closeWindowByClose = () => {
         setIsOpened(false);
     };
+    
+    useEffect(() => {
+        if (isOpened) {
+            document.body.style.overflow = "hidden"
+            return
+        }
+        document.body.style.overflow = ""
+    },[isOpened])
 
     return (
         <div

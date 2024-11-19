@@ -115,6 +115,19 @@ class PostService {
             return new PostDto(post);
         });
     }
+
+    async getPostIdsByAuthorId(authorId: number) {
+        if (!(await userService.userIsExistsById(authorId))) {
+            throw ApiError.BadRequest("Author id isn't found");
+        }
+        const ids: number[] = (
+            await db.query(
+                "SELECT post_id FROM posts WHERE post_author_id = $1",
+                [authorId]
+            )
+        ).rows;
+        return ids;
+    }
 }
 
 export default new PostService();

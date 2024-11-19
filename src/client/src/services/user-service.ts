@@ -20,4 +20,8 @@ export default class UserService {
     static async getUserById(userId: number) {
         return await $api.get<IUser>(`/user/${userId}`);
     }
+
+    static async getAllUsers() {
+        return await $api.get<{ users: IUser[] }>("/user/all");
+    }
 }

@@ -1,0 +1,35 @@
+.container {
+    margin-top: 50px;
+    background-color: #e8e8e8;
+    padding: 40px 70px;
+    border-radius: 60px;
+}
+
+.text {
+    font-size: 30px;
+    border-top: 1px solid black;
+    padding-top: 5px;
+}
+
+.block {
+    margin-top: 30px;
+}
+
+.input_search {
+    width: 30%;
+    height: 30px;
+    font-size: 25px;
+    padding: 5px;
+    border: none;
+    border-radius: 10px;
+}
+
+.empty {
+    margin-top: 40px;
+    font-size: 30px;
+}
+
+.no_one {
+    font-size: 25px;
+    margin-top: 30px;
+}

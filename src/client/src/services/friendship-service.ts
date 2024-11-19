@@ -3,7 +3,6 @@ import IGetFriendship from "../interfaces/IResponses/IGetFriendship";
 
 export default class FriendshipService {
     static async getFriendshipsByUserId(userId: number) {
-        console.log(userId)
         return await $api.get<{ friendships: IGetFriendship[] }>(
             `/friendship/${userId}`
         );

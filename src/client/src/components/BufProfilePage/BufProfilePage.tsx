@@ -8,8 +8,6 @@ const BufProfilePage: React.FC = () => {
     const { userId } = useParams();
     const { store } = useContext(Context);
 
-    console.log(userId)
-
     return (
         <>
             <ProfilePage userId={userId ? Number(userId) : store.user.userId} />

@@ -8,12 +8,9 @@ import INewPostForm from "../../interfaces/IProps/INewPostForm";
 
 export const NewPostForm: React.FC<INewPostForm> = ({
     setPosts,
-    setCreatePostIsOpened,
     repost,
     setRepost,
-    setError,
-    setIsOpened,
-    setErrorHeader,
+    setCreatePostFormIsOpened,
 }) => {
     const [content, setContent] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -72,34 +69,20 @@ export const NewPostForm: React.FC<INewPostForm> = ({
                 onClick={
                     repost
                         ? async () => {
-                              try {
-                                  const post = (
-                                      await PostService.newPost(
-                                          content,
-                                          repost.postId
-                                      )
-                                  ).data;
-                                  await PostImageService.newPostImages(
-                                      files,
-                                      post.postId
-                                  );
-                                  setRepost(null);
-                                  setContent("");
-                                  setFiles([]);
-                                  setCreatePostIsOpened(false);
-                              } catch (error) {
-                                  setPosts((prev) =>
-                                      prev.filter(
-                                          (postData) =>
-                                              postData.postId !== repost.postId
-                                      )
-                                  );
-                                  setErrorHeader("Repost not found");
-                                  setError(
-                                      "Reposted post was deleted. Maybe this was deleted by author."
-                                  );
-                                  setIsOpened(true);
-                              }
+                              const post = (
+                                  await PostService.newPost(
+                                      content,
+                                      repost.postId
+                                  )
+                              ).data;
+                              await PostImageService.newPostImages(
+                                  files,
+                                  post.postId
+                              );
+                              setRepost(null);
+                              setContent("");
+                              setFiles([]);
+                              setCreatePostFormIsOpened(false);
                           }
                         : async () => {
                               const post = (await PostService.newPost(content))
@@ -110,7 +93,7 @@ export const NewPostForm: React.FC<INewPostForm> = ({
                               );
                               setContent("");
                               setFiles([]);
-                              setCreatePostIsOpened(false);
+                              setCreatePostFormIsOpened(false);
                               setPosts((prev) => [post, ...prev]);
                           }
                 }

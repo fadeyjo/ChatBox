@@ -11,48 +11,53 @@ import { observer } from "mobx-react-lite";
 import CommentService from "../../services/comment-service";
 import { useNavigate } from "react-router-dom";
 
-const Comment: React.FC<IComment> = ({ comment, isMyPost, setComments }) => {
+const Comment: React.FC<IComment> = ({ comment, setComments, isMyPost }) => {
     const { store } = useContext(Context);
 
-    const [user, setUser] = useState<IUser>({} as IUser);
-    const [avatar, setAvatar] = useState("");
-
-    const loadInfo = async () => {
-        const userData = (
-            await UserService.getUserById(comment.commentAuthorId)
-        ).data;
-        setUser(userData);
-        const imageSrc = (
-            await ProfileImageService.getProfileImage(userData.userId)
-        ).data.src;
-        return imageSrc;
-    };
-
-    useEffect(() => {
-        loadInfo().then((response) => setAvatar(response));
-    }, []);
+    const [commentAuthor, setCommentAuthor] = useState({} as IUser);
+    const [commentAvatar, setCommentAvatar] = useState("");
 
     const navigate = useNavigate();
 
     const openPageByAvatar = () => {
         if (store.user.userId !== comment.commentAuthorId) {
-            navigate(`/${comment.commentAuthorId}`);
+            navigate(`/profile/${comment.commentAuthorId}`);
         }
     };
+
+    const loadCommentAvatarImage = async () => {
+        setCommentAvatar(
+            (await ProfileImageService.getProfileImage(comment.commentAuthorId))
+                .data.src
+        );
+    };
+
+    const loadCommentAuthor = async () => {
+        setCommentAuthor(
+            (await UserService.getUserById(comment.commentAuthorId)).data
+        );
+    };
+
+    useEffect(() => {
+        loadCommentAvatarImage();
+        loadCommentAuthor();
+    }, []);
 
     return (
         <div className={s.comment}>
             <div
                 className={s.avatar}
-                style={{ backgroundImage: `url(${avatar})` }}
+                style={{ backgroundImage: `url(${commentAvatar})` }}
                 onClick={openPageByAvatar}
             ></div>
             <div className={s.fio_content_date_time}>
                 <div>
                     <span className={s.fio}>
-                        {[user.lastName, user.firstName, user.patronymic].join(
-                            " "
-                        )}
+                        {[
+                            commentAuthor.lastName,
+                            commentAuthor.firstName,
+                            commentAuthor.patronymic,
+                        ].join(" ")}
                     </span>{" "}
                     <span className={s.date_time}>
                         {DateTimeService.formDate(comment.commentDateTime)}
@@ -64,13 +69,18 @@ const Comment: React.FC<IComment> = ({ comment, isMyPost, setComments }) => {
                 <IoClose
                     className={s.close}
                     onClick={async () => {
-                        await CommentService.deleteComment(comment.commentId);
-                        setComments((prev) =>
-                            prev.filter(
-                                (commentData) =>
-                                    commentData.commentId !== comment.commentId
-                            )
-                        );
+                        {
+                            await CommentService.deleteComment(
+                                comment.commentId
+                            );
+                            setComments((prev) =>
+                                prev.filter(
+                                    (commentData) =>
+                                        commentData.commentId !==
+                                        comment.commentId
+                                )
+                            );
+                        }
                     }}
                 />
             ) : null}

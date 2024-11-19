@@ -1,11 +1,12 @@
-import { ChangeEvent } from "react";
-
 export default interface IProfileInfo {
     userId: number;
-    imageSrc: string;
-    setImage: (event: ChangeEvent<HTMLInputElement>) => void;
+    lastName: string;
+    firstName: string;
+    patronymic: string | null;
+    friendsAmount: number;
+    subscribersAmount: number;
+    subscribesAmount: number;
     isSelfPage: boolean;
-    isFriend: boolean;
-    isSubscriber: boolean;
-    isSubscribes: boolean;
+    socket: any;
+    nickname: string;
 }

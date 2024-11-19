@@ -54,6 +54,7 @@ userRouter.delete(
     check("refreshToken").isLength({ min: 1 }),
     userController.logout
 );
+userRouter.get("/all", authMiddleware, userController.getAllUsers);
 userRouter.get(
     "/refresh",
     check("refreshToken").isLength({ min: 1 }),

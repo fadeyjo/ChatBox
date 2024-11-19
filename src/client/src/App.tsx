@@ -7,6 +7,9 @@ import { NotAuthHeader } from "./components/NotAuthHeader/NotAuthHeader";
 import AuthHeader from "./components/AuthHeader/AuthHeader";
 import { SideBar } from "./components/SideBar/SideBar";
 import BufProfilePage from "./components/BufProfilePage/BufProfilePage";
+import { BufFriendsPage } from "./components/BufFriendsPage/BufFriendsPage";
+import { BufSubscribersPage } from "./components/BufSubscribersPage/BufSubscribersPage";
+import { BufSubscribesPage } from "./components/BufSubscribesPage/BufSubscribesPage";
 
 function App() {
     const { store } = useContext(Context);
@@ -31,12 +34,36 @@ function App() {
                                     element={<Navigate to="/profile" replace />}
                                 />
                                 <Route
-                                    path="/:userId"
+                                    path="/profile/:userId"
                                     element={<BufProfilePage />}
                                 />
                                 <Route
                                     path="/profile"
                                     element={<BufProfilePage />}
+                                />
+                                <Route
+                                    path="/friends"
+                                    element={<BufFriendsPage />}
+                                />
+                                <Route
+                                    path="/friends/:userId"
+                                    element={<BufFriendsPage />}
+                                />
+                                <Route
+                                    path="/subscribers"
+                                    element={<BufSubscribersPage />}
+                                />
+                                <Route
+                                    path="/subscribers/:userId"
+                                    element={<BufSubscribersPage />}
+                                />
+                                <Route
+                                    path="/subscribes"
+                                    element={<BufSubscribesPage />}
+                                />
+                                <Route
+                                    path="/subscribes/:userId"
+                                    element={<BufSubscribesPage />}
                                 />
                             </Routes>
                         </div>

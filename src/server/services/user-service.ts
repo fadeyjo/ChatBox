@@ -98,6 +98,13 @@ class UserService {
         }
         return true;
     }
+
+    async getAllUsers() {
+        const users: IUserFromDataBase[] = (
+            await db.query("SELECT * FROM users", [])
+        ).rows;
+        return users.map((user) => new UserDto(user));
+    }
 }
 
 export default new UserService();

@@ -23,90 +23,115 @@ import { IoClose } from "react-icons/io5";
 import PostImageService from "../../services/postImage-service";
 import ImageSlider from "../ImageSlider/ImageSlider";
 import { useNavigate } from "react-router-dom";
-import { error } from "console";
+import io from "socket.io-client";
+import { globalSocket } from "../../globalSocket";
 
 const Post: React.FC<IPost> = ({
     post,
     isChild,
-    setPosts,
-    setCreatePostIsOpened,
+    setCreatePostFormIsOpened,
     setRepost,
-    imageSrc,
-    setError,
-    setIsOpened,
-    setErrorHeader,
+    setPosts,
 }) => {
-    const [childrenPost, setChildrenPost] = useState<JSX.Element | null>(null);
-    const [authorProfileImage, setAuthorProfileImage] = useState("");
-    const [comments, setComments] = useState<IGetComment[]>([]);
+    const { store } = useContext(Context);
+
+    const [postAvatarImage, setPostAvatarImage] = useState("");
+    const [socket, setSocket] = useState<any>(null);
     const [author, setAuthor] = useState({} as IUser);
-    const [allComments, setAllComments] = useState<boolean | null>(null);
+    const [postImages, setPostImages] = useState<string[]>([]);
+    const [comments, setComments] = useState<IGetComment[]>([]);
+    const [childPost, setChildPost] = useState<JSX.Element | null>(null);
+    const [showAllComments, setShowAllComments] = useState<boolean>(false);
     const [newComment, setNewComment] = useState("");
     const [isReaction, setIsReaction] = useState(false);
-    const [reactions, setReactions] = useState<IGetReaction[]>([]);
-    const { store } = useContext(Context);
-    const [reposts, setReposts] = useState<IGetPost[]>([]);
-    const [postImages, setPostImages] = useState<string[]>([]);
+    const [reactionsAmount, setReactionsAmount] = useState(0);
+    const [repostsAmount, setRepostsAmount] = useState(0);
 
     const navigate = useNavigate();
 
     const openPageByAvatar = () => {
         if (store.user.userId !== post.postAuthorId) {
-            navigate(`/${post.postAuthorId}`);
+            navigate(`/profile/${post.postAuthorId}`);
         }
     };
 
-    const asyncEffect = async () => {
+    const loadPostAvatarImage = async () => {
+        setPostAvatarImage(
+            (await ProfileImageService.getProfileImage(post.postAuthorId)).data
+                .src
+        );
+    };
+
+    const loadAuthor = async () => {
+        setAuthor((await UserService.getUserById(post.postAuthorId)).data);
+    };
+
+    const loadPostImages = async () => {
         setPostImages(
             (await PostImageService.getPostImages(post.postId)).data.postImages
         );
-        const authorData = (await UserService.getUserById(post.postAuthorId))
-            .data;
-        setAuthor(authorData);
+    };
 
+    const loadComments = async () => {
+        setComments(
+            (
+                await CommentService.getCommentsByPostId(post.postId)
+            ).data.comments.sort((first, second) => {
+                const dateFirst = new Date(first.commentDateTime);
+                const dateSecond = new Date(second.commentDateTime);
+                return dateSecond.getTime() - dateFirst.getTime();
+            })
+        );
+    };
+
+    const loadChildPost = async () => {
         if (post.childrenPostId) {
-            const childPost: IGetPost = (
+            const childPostData = (
                 await PostService.getPostById(post.childrenPostId)
             ).data;
-            setChildrenPost(<Post isChild={true} post={childPost} />);
-        }
-
-        if (!isChild) {
-            setComments(
-                (
-                    await CommentService.getCommentsByPostId(post.postId)
-                ).data.comments.sort((first, second) => {
-                    const dateFirst = new Date(first.commentDateTime);
-                    const dateSecond = new Date(second.commentDateTime);
-                    return dateSecond.getTime() - dateFirst.getTime();
-                })
-            );
-            const reactionsOnPost = await (
-                await ReactionService.getReactionsByPostId(post.postId)
-            ).data.reactions;
-            for (let i = 0; i < reactionsOnPost.length; i++) {
-                if (reactionsOnPost[i].reactionAuthorId === store.user.userId) {
-                    setIsReaction(true);
-                    break;
-                }
-            }
-            setReactions(reactionsOnPost);
-            setReposts(
-                (await PostService.getPostsByChildrenPostId(post.postId)).data
-                    .posts
-            );
+            setChildPost(<Post post={childPostData} isChild={true} />);
         }
     };
 
-    useEffect(() => {
-        asyncEffect();
-    }, []);
+    const laodReactions = async () => {
+        const reactionsData = (
+            await ReactionService.getReactionsByPostId(post.postId)
+        ).data.reactions;
+        setReactionsAmount(reactionsData.length);
+        for (let i = 0; i < reactionsData.length; i++) {
+            if (reactionsData[i].reactionAuthorId === store.user.userId) {
+                setIsReaction(true);
+                return;
+            }
+        }
+    };
+
+    const loadReposts = async () => {
+        setRepostsAmount(
+            (await PostService.getPostsByChildrenPostId(post.postId)).data.posts
+                .length
+        );
+    };
 
     useEffect(() => {
-        ProfileImageService.getProfileImage(post.postAuthorId)
-            .then((response) => response.data)
-            .then((data) => setAuthorProfileImage(data.src));
-    }, [imageSrc]);
+        loadAuthor();
+        loadPostImages();
+        loadChildPost();
+        loadPostAvatarImage();
+        laodReactions();
+        loadReposts();
+        if (!isChild) {
+            loadComments();
+        }
+        const newSocket = io(globalSocket);
+        setSocket(newSocket);
+        newSocket.emit("subscribe_post", {
+            postId: post.postId,
+            subscriberId: store.user.userId,
+        });
+        newSocket.on("receive_profile_image", () => loadPostAvatarImage());
+        return () => {};
+    }, []);
 
     return (
         <div className={classNames(s.post, { [s.left_border]: isChild })}>
@@ -115,7 +140,7 @@ const Post: React.FC<IPost> = ({
                     className={s.profile_post_image}
                     onClick={openPageByAvatar}
                     style={{
-                        backgroundImage: `url(${authorProfileImage})`,
+                        backgroundImage: `url(${postAvatarImage})`,
                     }}
                 ></div>
                 <div className={s.date_time_fio}>
@@ -133,48 +158,47 @@ const Post: React.FC<IPost> = ({
             </div>
             <div className={s.post_content}>{post.content}</div>
             <ImageSlider images={postImages} />
-            {childrenPost}
-            {isChild
-                ? null
-                : comments.map((comment, index) => {
-                      if (allComments || comments.length <= 2)
-                          return (
-                              <Comment
-                                  isMyPost={
-                                      store.user.userId === post.postAuthorId
-                                  }
-                                  comment={comment}
-                                  key={comment.commentId}
-                                  setComments={setComments}
-                              />
-                          );
-                      if (index <= 1)
-                          return (
-                              <Comment
-                                  isMyPost={
-                                      store.user.userId === post.postAuthorId
-                                  }
-                                  comment={comment}
-                                  key={comment.commentId}
-                                  setComments={setComments}
-                              />
-                          );
-                      return null;
-                  })}
+            {childPost}
+            {comments.length !== 0 &&
+                comments.map((comment, index) => {
+                    if (showAllComments || comments.length <= 2)
+                        return (
+                            <Comment
+                                isMyPost={
+                                    store.user.userId === post.postAuthorId
+                                }
+                                comment={comment}
+                                key={comment.commentId}
+                                setComments={setComments}
+                            />
+                        );
+                    if (index <= 1)
+                        return (
+                            <Comment
+                                isMyPost={
+                                    store.user.userId === post.postAuthorId
+                                }
+                                comment={comment}
+                                key={comment.commentId}
+                                setComments={setComments}
+                            />
+                        );
+                    return null;
+                })}
             {comments.length > 2 ? (
-                allComments ? (
+                showAllComments ? (
                     <span
                         className={s.manage_comments}
-                        onClick={() => setAllComments(false)}
+                        onClick={() => setShowAllComments(false)}
                     >
-                        Close comments
+                        Hide comments
                     </span>
                 ) : (
                     <span
                         className={s.manage_comments}
-                        onClick={() => setAllComments(true)}
+                        onClick={() => setShowAllComments(true)}
                     >
-                        View all commets...
+                        Show all commets...
                     </span>
                 )
             ) : null}
@@ -208,7 +232,6 @@ const Post: React.FC<IPost> = ({
                     />
                 </div>
             ) : null}
-
             {isChild ? null : (
                 <div className={s.reaction_repost}>
                     <div
@@ -220,72 +243,21 @@ const Post: React.FC<IPost> = ({
                                           post.postId
                                       )
                                           .then((response) => response.data)
-                                          .then((data) =>
-                                              setReactions((prev) => {
-                                                  setIsReaction(false);
-                                                  return prev.filter(
-                                                      (reactionData) =>
-                                                          reactionData.reactionId !==
-                                                          data.reactionId
-                                                  );
-                                              })
-                                          )
-                                          .catch((error) => {
-                                              if (
-                                                  setPosts &&
-                                                  setError &&
-                                                  setIsOpened &&
-                                                  setErrorHeader
-                                              ) {
-                                                  setPosts((prev) =>
-                                                      prev.filter(
-                                                          (postData) =>
-                                                              postData.postId !==
-                                                              post.postId
-                                                      )
-                                                  );
-                                                  setErrorHeader(
-                                                      "Repost not found"
-                                                  );
-                                                  setError(
-                                                      "Reposted post was deleted. Maybe this was deleted by author."
-                                                  );
-                                                  setIsOpened(true);
-                                              }
+                                          .then((data) => {
+                                              setReactionsAmount(
+                                                  (prev) => prev - 1
+                                              );
+                                              setIsReaction(false);
                                           });
                                   }
                                 : () => {
                                       ReactionService.newReaction(post.postId)
                                           .then((response) => response.data)
                                           .then((data) => {
-                                              setReactions((prev) => [
-                                                  data,
-                                                  ...prev,
-                                              ]);
+                                              setReactionsAmount(
+                                                  (prev) => prev + 1
+                                              );
                                               setIsReaction(true);
-                                          })
-                                          .catch((error) => {
-                                              if (
-                                                  setPosts &&
-                                                  setError &&
-                                                  setIsOpened &&
-                                                  setErrorHeader
-                                              ) {
-                                                  setPosts((prev) =>
-                                                      prev.filter(
-                                                          (postData) =>
-                                                              postData.postId !==
-                                                              post.postId
-                                                      )
-                                                  );
-                                                  setErrorHeader(
-                                                      "Repost not found"
-                                                  );
-                                                  setError(
-                                                      "Reposted post was deleted. Maybe this was deleted by author."
-                                                  );
-                                                  setIsOpened(true);
-                                              }
                                           });
                                   }
                         }
@@ -295,34 +267,32 @@ const Post: React.FC<IPost> = ({
                         ) : (
                             <FcLikePlaceholder className={s.reaction_button} />
                         )}{" "}
-                        {reactions.length}{" "}
+                        {reactionsAmount}{" "}
                     </div>
-                    {
-                        <div
-                            className={classNames({
-                                [s.reposts_amount]:
-                                    post.postAuthorId !== store.user.userId,
-                                [s.repost_amount_unself]:
-                                    post.postAuthorId === store.user.userId,
-                            })}
-                            onClick={
-                                post.postAuthorId === store.user.userId
-                                    ? () => {}
-                                    : () => {
-                                          if (
-                                              setCreatePostIsOpened &&
-                                              setRepost
-                                          ) {
-                                              setCreatePostIsOpened(true);
-                                              setRepost(post);
-                                          }
+                    <div
+                        className={classNames({
+                            [s.reposts_amount]:
+                                post.postAuthorId !== store.user.userId,
+                            [s.repost_amount_unself]:
+                                post.postAuthorId === store.user.userId,
+                        })}
+                        onClick={
+                            post.postAuthorId === store.user.userId
+                                ? () => {}
+                                : () => {
+                                      if (
+                                          setCreatePostFormIsOpened &&
+                                          setRepost
+                                      ) {
+                                          setCreatePostFormIsOpened(true);
+                                          setRepost(post);
                                       }
-                            }
-                        >
-                            <FaDirections className={s.repost_button} />{" "}
-                            {reposts.length}
-                        </div>
-                    }
+                                  }
+                        }
+                    >
+                        <FaDirections className={s.repost_button} />{" "}
+                        {repostsAmount}
+                    </div>
                 </div>
             )}
             {isChild || post.postAuthorId !== store.user.userId ? null : (
@@ -336,29 +306,9 @@ const Post: React.FC<IPost> = ({
                                     setPosts((prev) =>
                                         prev.filter(
                                             (postData) =>
-                                                postData.postId !== data.postId
-                                        )
-                                    );
-                            })
-                            .catch((error) => {
-                                if (
-                                    setPosts &&
-                                    setError &&
-                                    setIsOpened &&
-                                    setErrorHeader
-                                ) {
-                                    setPosts((prev) =>
-                                        prev.filter(
-                                            (postData) =>
                                                 postData.postId !== post.postId
                                         )
                                     );
-                                    setErrorHeader("Repost not found");
-                                    setError(
-                                        "Reposted post was deleted. Maybe this was deleted by author."
-                                    );
-                                    setIsOpened(true);
-                                }
                             });
                     }}
                 />

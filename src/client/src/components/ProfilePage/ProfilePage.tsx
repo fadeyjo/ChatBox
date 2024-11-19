@@ -14,61 +14,84 @@ import IUser from "../../interfaces/IResponses/IUser";
 import UserService from "../../services/user-service";
 import FriendshipService from "../../services/friendship-service";
 import SubscribersPageOwnersService from "../../services/subscribersPageOwners-service";
+import { globalSocket } from "../../globalSocket";
+import io from "socket.io-client";
 
 const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
     const { store } = useContext(Context);
 
     const isSelfPage = userId === store.user.userId;
 
-    const [error, setError] = useState("");
-    const [imageSrc, setImageSrc] = useState("");
-    const [file, setFile] = useState<File>();
-    const [isOpened, setIsOpened] = useState(false);
-    const [posts, setPosts] = useState<IGetPost[]>([]);
-    const [createPostIsOpened, setCreatePostIsOpened] = useState(false);
     const [user, setUser] = useState<IUser>({} as IUser);
+    const [socket, setSocket] = useState<any>(null);
+    const [friendsAmount, setFriendsAmount] = useState(0);
+    const [subscribersAmount, setSubscribersAmount] = useState(0);
+    const [subscribesAmount, setSubscribesAmount] = useState(0);
+    const [posts, setPosts] = useState<IGetPost[]>([]);
+    const [createPostFormIsOpened, setCreatePostFormIsOpened] = useState(false);
     const [isFriend, setIsFriend] = useState(false);
     const [isSubscriber, setIsSubscriber] = useState(false);
     const [isSubscribes, setIsSubscribes] = useState(false);
     const [repost, setRepost] = useState<IGetPost | null>(null);
-    const [errorHeader, setErrorHeader] = useState("");
 
-    useEffect(() => {
-        ProfileImageService.getProfileImage(userId)
-            .then((response) => response.data)
-            .then((data) => setImageSrc(data.src));
-    }, [file, userId]);
+    const setRelationships = async () => {
+        setFriendsAmount(
+            await (
+                await FriendshipService.getFriendshipsByUserId(userId)
+            ).data.friendships.length
+        );
 
-    const setStatus = async () => {
+        setSubscribersAmount(
+            (await SubscribersPageOwnersService.getSubscribersByUserId(userId))
+                .data.subscribersPageOwners.length
+        );
+
+        setSubscribesAmount(
+            (await SubscribersPageOwnersService.getSubscribesByUserId(userId))
+                .data.subscribersPageOwners.length
+        );
+    };
+
+    const loadPosts = async () => {
+        setPosts(
+            (await PostService.getPostsByUserId(userId)).data.posts.sort(
+                (first, second) => {
+                    const dateFirst = new Date(first.publicationDateTime);
+                    const dateSecond = new Date(second.publicationDateTime);
+                    return dateSecond.getTime() - dateFirst.getTime();
+                }
+            )
+        );
+    };
+
+    const setSelfRelationship = async () => {
         if (isSelfPage) return;
-        const friendships = (
+        const friendshipsByUserId = (
             await FriendshipService.getFriendshipsByUserId(userId)
         ).data.friendships;
-        for (let i = 0; i < friendships.length; i++) {
+        for (let i = 0; i < friendshipsByUserId.length; i++) {
             if (
-                friendships[i].firstFriendId === store.user.userId ||
-                friendships[i].secondFriendId === store.user.userId
+                friendshipsByUserId[i].firstFriendId === store.user.userId ||
+                friendshipsByUserId[i].secondFriendId === store.user.userId
             ) {
                 setIsFriend(true);
                 return;
             }
         }
-        const subscribers = (
+        const subscribersByUserId = (
             await SubscribersPageOwnersService.getSubscribersByUserId(userId)
         ).data.subscribersPageOwners;
-        for (let i = 0; i < subscribers.length; i++) {
-            if (subscribers[i].subscriberId === store.user.userId) {
+        for (let i = 0; i < subscribersByUserId.length; i++) {
+            if (subscribersByUserId[i].subscriberId === store.user.userId) {
                 setIsSubscribes(true);
                 return;
             }
         }
-        const subscribes = (
-            await SubscribersPageOwnersService.getSubscribersByUserId(
-                store.user.userId
-            )
+        const subscribesByUserId = (
+            await SubscribersPageOwnersService.getSubscribesByUserId(userId)
         ).data.subscribersPageOwners;
-        for (let i = 0; i < subscribes.length; i++) {
-            if (subscribes[i].subscriberId === userId) {
+        for (let i = 0; i < subscribesByUserId.length; i++) {
+            if (subscribesByUserId[i].pageOwnerId === store.user.userId) {
                 setIsSubscriber(true);
                 return;
             }
@@ -76,64 +99,49 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
     };
 
     useEffect(() => {
+        setSelfRelationship();
+        setRelationships();
+        loadPosts();
         UserService.getUserById(userId)
             .then((response) => response.data)
             .then((data) => setUser(data));
-        PostService.getPostsByUserId(userId)
-            .then((response) => response.data)
-            .then((data) =>
-                setPosts(
-                    data.posts.sort((first, second) => {
-                        const dateFirst = new Date(first.publicationDateTime);
-                        const dateSecond = new Date(second.publicationDateTime);
-                        return dateSecond.getTime() - dateFirst.getTime();
-                    })
-                )
-            );
-        setStatus();
-        window.scrollTo(0, 0);
+        const newSocket = io(globalSocket);
+        setSocket(newSocket);
+        newSocket.emit("subscribe_profile", {
+            userId,
+            subscriberId: store.user.userId,
+        });
+        newSocket.on("receive_self_relationship", () => setSelfRelationship());
+        newSocket.on("receive_relationship", () => setRelationships());
+        newSocket.on("receive_posts", () => loadPosts()); ///!!!!!!
+        return () => {
+            newSocket.off("receive_self_relationship");
+            newSocket.off("receive_posts");
+            newSocket.off("receive_profile_image");
+            newSocket.off("receive_relationship");
+            newSocket.disconnect();
+        };
     }, [userId]);
-
-    const setImage = async (event: ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files;
-        if (!files || files.length === 0) {
-            setError("Not files.");
-            setError("Error to set profile image");
-            setIsOpened(true);
-            return;
-        }
-        const file = files[0];
-        if (!["image/jpeg", "image/jpg", "image/png"].includes(file.type)) {
-            setError(
-                "Incorrect file format. Select jpg, jpeg or png format file."
-            );
-            setError("Error to set profile image");
-            setIsOpened(true);
-            return;
-        }
-        const formData = new FormData();
-        formData.append("image", file);
-        await ProfileImageService.newProfileImage(formData);
-        setFile(file);
-    };
 
     return (
         <>
             <div className={s.profile}>
                 <ProfileInfo
-                    isSelfPage={isSelfPage}
                     userId={userId}
-                    setImage={setImage}
-                    imageSrc={imageSrc}
-                    isFriend={isFriend}
-                    isSubscriber={isSubscriber}
-                    isSubscribes={isSubscribes}
+                    lastName={user.lastName}
+                    firstName={user.firstName}
+                    patronymic={user.patronymic}
+                    friendsAmount={friendsAmount}
+                    subscribersAmount={subscribersAmount}
+                    subscribesAmount={subscribesAmount}
+                    isSelfPage={isSelfPage}
+                    socket={socket}
+                    nickname={user.nickname}
                 />
                 {isSelfPage ? (
                     <FormButton
                         onClick={() => {
-                            setCreatePostIsOpened(true);
-                            setRepost(null);
+                            setCreatePostFormIsOpened(true);
                         }}
                         className={s.create_post_button}
                         type="button"
@@ -150,6 +158,15 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
                             );
                             setIsFriend(false);
                             setIsSubscriber(true);
+                            if (socket) {
+                                socket.emit("change_relationship", {
+                                    userId,
+                                });
+                                socket.emit("change_self_relationship", {
+                                    userId,
+                                    selfUserId: store.user.userId,
+                                });
+                            }
                         }}
                         className={s.create_post_button}
                         type="button"
@@ -166,6 +183,15 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
                             await FriendshipService.newFriendShip(userId);
                             setIsFriend(true);
                             setIsSubscriber(false);
+                            if (socket) {
+                                socket.emit("change_relationship", {
+                                    userId,
+                                });
+                                socket.emit("change_self_relationship", {
+                                    userId,
+                                    selfUserId: store.user.userId,
+                                });
+                            }
                         }}
                         className={s.create_post_button}
                         type="button"
@@ -180,6 +206,15 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
                                 userId
                             );
                             setIsSubscribes(false);
+                            if (socket) {
+                                socket.emit("change_relationship", {
+                                    userId,
+                                });
+                                socket.emit("change_self_relationship", {
+                                    userId,
+                                    selfUserId: store.user.userId,
+                                });
+                            }
                         }}
                         className={s.create_post_button}
                         type="button"
@@ -194,6 +229,15 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
                                 userId
                             );
                             setIsSubscribes(true);
+                            if (socket) {
+                                socket.emit("change_relationship", {
+                                    userId,
+                                });
+                                socket.emit("change_self_relationship", {
+                                    userId,
+                                    selfUserId: store.user.userId,
+                                });
+                            }
                         }}
                         className={s.create_post_button}
                         type="button"
@@ -202,45 +246,32 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
                     </FormButton>
                 )}
             </div>
-
             {posts.length !== 0 && (
                 <div className={s.posts}>
                     {posts.map((post) => (
                         <Post
-                            imageSrc={imageSrc}
                             isChild={false}
                             post={post}
                             key={post.postId}
-                            setPosts={setPosts}
+                            setCreatePostFormIsOpened={
+                                setCreatePostFormIsOpened
+                            }
                             setRepost={setRepost}
-                            setCreatePostIsOpened={setCreatePostIsOpened}
-                            setIsOpened={setIsOpened}
-                            setError={setError}
+                            setPosts={setPosts}
                         />
                     ))}
                 </div>
             )}
-
             <ModalWindow
-                isOpened={isOpened}
-                setIsOpened={setIsOpened}
-                header={errorHeader}
-            >
-                <div className={s.error}>{error}</div>
-            </ModalWindow>
-            <ModalWindow
-                isOpened={createPostIsOpened}
-                setIsOpened={setCreatePostIsOpened}
+                isOpened={createPostFormIsOpened}
+                setIsOpened={setCreatePostFormIsOpened}
                 header="New post"
             >
                 <NewPostForm
-                    setCreatePostIsOpened={setCreatePostIsOpened}
+                    setCreatePostFormIsOpened={setCreatePostFormIsOpened}
                     setPosts={setPosts}
                     repost={repost}
                     setRepost={setRepost}
-                    setError={setError}
-                    setErrorHeader={setErrorHeader}
-                    setIsOpened={setIsOpened}
                 />
             </ModalWindow>
         </>

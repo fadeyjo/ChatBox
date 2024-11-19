@@ -121,6 +121,15 @@ class UserController {
         }
     }
 
+    async getAllUsers(req: Request, res: Response, next: NextFunction) {
+        try {
+            const users = await userService.getAllUsers();
+            res.json({ users });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     async refresh(req: Request, res: Response, next: NextFunction) {
         try {
             const errors = validationResult(req);
@@ -131,8 +140,8 @@ class UserController {
             const userData = await tokensService.refresh(refreshToken);
             res.cookie("refreshToken", userData.refreshToken, {
                 httpOnly: true,
-                secure: true,
-                sameSite: "none",
+                // secure: true,
+                // sameSite: "none",
                 maxAge:
                     Number(process.env.LIVING_TIME_REFRESH_TOKEN_COOKIE) ||
                     2592000000,

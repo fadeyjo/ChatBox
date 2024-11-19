@@ -1,54 +1,61 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, {
+    ChangeEvent,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import s from "./ProfileInfo.module.css";
 import IProfileInfo from "../../interfaces/IProps/IProfileInfo";
 import classNames from "classnames";
 import FriendshipService from "../../services/friendship-service";
 import SubscribersPageOwnersService from "../../services/subscribersPageOwners-service";
-import IUser from "../../interfaces/IResponses/IUser";
 import UserService from "../../services/user-service";
+import { globalSocket } from "../../globalSocket";
+import io from "socket.io-client";
+import ProfileImageService from "../../services/profileImage-service";
 
 const ProfileInfo: React.FC<IProfileInfo> = ({
     userId,
-    imageSrc,
-    setImage,
+    lastName,
+    firstName,
+    patronymic,
+    friendsAmount,
+    subscribersAmount,
+    subscribesAmount,
     isSelfPage,
-    isFriend,
-    isSubscriber,
-    isSubscribes,
+    socket,
+    nickname,
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [friendsAmount, setFriendsAmount] = useState(0);
-    const [subscribersAmount, setSubscribersAmount] = useState(0);
-    const [subscribesAmount, setSubscribesAmount] = useState(0);
-    const [user, setUser] = useState({} as IUser);
+    const [imageSrc, setImageSrc] = useState("");
+
+    const setNewImage = async (event: ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (!files || files.length === 0) {
+            return;
+        }
+        const file = files[0];
+        if (!["image/jpeg", "image/jpg", "image/png"].includes(file.type)) {
+            return;
+        }
+        const formData = new FormData();
+        formData.append("image", file);
+        await ProfileImageService.newProfileImage(formData);
+        socket.emit("change_profile_image", { userId });
+    };
+
+    const setImage = async () => {
+        setImageSrc(
+            (await ProfileImageService.getProfileImage(userId)).data.src
+        );
+    };
 
     useEffect(() => {
-        FriendshipService.getFriendshipsByUserId(userId)
-            .then((response) => response)
-            .then((data) => setFriendsAmount(data.data.friendships.length))
-            .catch((error) => {});
-
-        SubscribersPageOwnersService.getSubscribersByUserId(userId)
-            .then((response) => response)
-            .then((data) =>
-                setSubscribersAmount(data.data.subscribersPageOwners.length)
-            )
-            .catch((error) => {});
-
-        SubscribersPageOwnersService.getSubscribesByUserId(userId)
-            .then((response) => response)
-            .then((data) =>
-                setSubscribesAmount(data.data.subscribersPageOwners.length)
-            )
-            .catch((error) => {});
-    }, [isFriend, isSubscriber, isSubscribes, userId]);
-
-    useEffect(() => {
-        UserService.getUserById(userId)
-            .then((response) => response.data)
-            .then((data) => setUser(data));
-    }, [userId]);
+        setImage();
+        if (socket) socket.on("receive_profile_image", () => setImage());
+    }, [socket]);
 
     return (
         <div className={s.profile_info}>
@@ -64,9 +71,9 @@ const ProfileInfo: React.FC<IProfileInfo> = ({
             ></div>
             <div className={s.fio_email}>
                 <div className={s.fio}>
-                    {[user.lastName, user.firstName, user.patronymic].join(" ")}
+                    {[lastName, firstName, patronymic].join(" ")}
                 </div>
-                <div className={s.email}>@{user.nickname}</div>
+                <div className={s.email}>@{nickname}</div>
                 <div className={s.other_info}>
                     <div>{friendsAmount} friends</div>
                     <div>{subscribersAmount} subscribers</div>
@@ -79,7 +86,7 @@ const ProfileInfo: React.FC<IProfileInfo> = ({
                     type="file"
                     accept=".jpg, .jpeg, .png"
                     ref={fileInputRef}
-                    onChange={setImage}
+                    onChange={setNewImage}
                 />
             ) : null}
         </div>

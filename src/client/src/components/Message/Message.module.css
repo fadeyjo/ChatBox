@@ -1,0 +1,76 @@
+.message {
+    max-width: 70%;
+    padding: 10px;
+    border-radius: 10px;
+    word-wrap: break-word;
+    position: relative;
+    padding-top: 20px;
+    min-width: 30%;
+}
+
+.delete_message {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+}
+
+.delete_message:hover {
+    cursor: pointer;
+}
+
+.left_but {
+    position: absolute;
+    left: -20px;
+    opacity: 0.2;
+    transform: scale(-1);
+}
+
+.left_but:hover {
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+.right_but {
+    position: absolute;
+    right: -20px;
+    opacity: 0.2;
+    transform: scale(-1);
+}
+
+.date {
+    font-size: 15px;
+    opacity: 0.5;
+    margin-top: 10px;
+}
+
+.right_but:hover {
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+.message.left {
+    align-self: flex-start;
+    background-color: #e8e8e8;
+    border-top-left-radius: 0;
+}
+
+.message.right {
+    align-self: flex-end;
+    background-color: #d1e7dd;
+    border-top-right-radius: 0;
+}
+
+.child_message_back {
+    background-color: #f3f3f3;
+    margin-top: 20px;
+    max-width: 90%;
+}
+
+.resend_form {
+    display: flex;
+    flex-direction: column;
+}
+
+.reseond_header {
+    opacity: 0.5;
+}

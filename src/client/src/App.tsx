@@ -10,6 +10,9 @@ import BufProfilePage from "./components/BufProfilePage/BufProfilePage";
 import { BufFriendsPage } from "./components/BufFriendsPage/BufFriendsPage";
 import { BufSubscribersPage } from "./components/BufSubscribersPage/BufSubscribersPage";
 import { BufSubscribesPage } from "./components/BufSubscribesPage/BufSubscribesPage";
+import { PostsPage } from "./components/PostsPage/PostsPage";
+import { ChatsPage } from "./components/ChatsPage/ChatsPage";
+import { Chat } from "./components/Chat/Chat";
 
 function App() {
     const { store } = useContext(Context);
@@ -64,6 +67,18 @@ function App() {
                                 <Route
                                     path="/subscribes/:userId"
                                     element={<BufSubscribesPage />}
+                                />
+                                <Route
+                                    path="/posts"
+                                    element={<PostsPage />}
+                                />
+                                <Route
+                                    path="/chats"
+                                    element={<ChatsPage />}
+                                />
+                                <Route
+                                    path="/chats/:chatId"
+                                    element={<Chat />}
                                 />
                             </Routes>
                         </div>

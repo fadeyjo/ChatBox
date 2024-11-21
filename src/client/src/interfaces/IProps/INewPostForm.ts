@@ -6,4 +6,5 @@ export default interface INewPostForm {
     repost: IGetPost | null;
     setRepost: Dispatch<React.SetStateAction<IGetPost | null>>;
     setCreatePostFormIsOpened: Dispatch<React.SetStateAction<boolean>>;
+    isFromPostsPage: boolean;
 }

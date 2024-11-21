@@ -1,10 +1,13 @@
 .slider_container {
     position: relative;
     margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .left_button {
     position: absolute;
-    left: 10px;
+    left: 20%;
     top: 50%;
     transform: translateY(-50%);
     background: transparent;
@@ -15,7 +18,7 @@
 }
 
 .slider_image {
-    width: 100%;
+    width: 60%;
     aspect-ratio: 1;
     background-size: cover;
     background-position: center;
@@ -25,7 +28,7 @@
 
 .right_button {
     position: absolute;
-    right: 10px;
+    right: 20%;
     top: 50%;
     transform: translateY(-50%);
     background: transparent;

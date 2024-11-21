@@ -19,6 +19,20 @@
     border-radius: 60px;
 }
 
-.create_post_button {
+.manage_buttons {
+    width: 100%;
     margin-top: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.send_message {
+    margin-top: 20px;
+    font-size: 25px;
+    text-decoration: underline;
+}
+
+.send_message:hover {
+    cursor: pointer;
 }

@@ -5,12 +5,15 @@ import { GoPaperclip } from "react-icons/go";
 import PostService from "../../services/post-service";
 import PostImageService from "../../services/postImage-service";
 import INewPostForm from "../../interfaces/IProps/INewPostForm";
+import io from "socket.io-client";
+import { globalSocket } from "../../globalSocket";
 
 export const NewPostForm: React.FC<INewPostForm> = ({
     setPosts,
     repost,
     setRepost,
     setCreatePostFormIsOpened,
+    isFromPostsPage,
 }) => {
     const [content, setContent] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,6 +86,10 @@ export const NewPostForm: React.FC<INewPostForm> = ({
                               setContent("");
                               setFiles([]);
                               setCreatePostFormIsOpened(false);
+                              if (isFromPostsPage)
+                                  setPosts((prev) => [post, ...prev]);
+                              const socket = io(globalSocket);
+                              socket.emit("new_post", { post });
                           }
                         : async () => {
                               const post = (await PostService.newPost(content))
@@ -95,6 +102,8 @@ export const NewPostForm: React.FC<INewPostForm> = ({
                               setFiles([]);
                               setCreatePostFormIsOpened(false);
                               setPosts((prev) => [post, ...prev]);
+                              const socket = io(globalSocket);
+                              socket.emit("new_post", { post });
                           }
                 }
                 type="button"

@@ -7,6 +7,5 @@ export default interface IProfileInfo {
     subscribersAmount: number;
     subscribesAmount: number;
     isSelfPage: boolean;
-    socket: any;
     nickname: string;
 }

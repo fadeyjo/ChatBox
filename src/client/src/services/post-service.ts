@@ -26,4 +26,8 @@ export default class PostService {
     static async deletePost(postId: number) {
         return await $api.delete<IGetPost>(`/post/${postId}`);
     }
+
+    static async getALlPosts() {
+        return await $api.get<{ posts: IGetPost[] }>("/post/all");
+    }
 }

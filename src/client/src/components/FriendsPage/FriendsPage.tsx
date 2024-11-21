@@ -1,16 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import s from "./FriendsPage.module.css";
 import IUser from "../../interfaces/IResponses/IUser";
 import FriendshipService from "../../services/friendship-service";
 import UserService from "../../services/user-service";
 import { UserCard } from "../UserCard/UserCard";
+import { Context } from "../..";
 
 export const FriendsPage: React.FC<{ userId: number }> = ({ userId }) => {
+    const { store } = useContext(Context);
+
     const [friends, setFriends] = useState<IUser[]>([]);
     const [globalSearch, setGlobalSearch] = useState<IUser[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [allUsers, setAllUsers] = useState<IUser[]>([]);
     const [localSearch, setLocalSearch] = useState<IUser[]>([]);
+    const [user, setUser] = useState<IUser>({} as IUser);
 
     const loadFriends = async () => {
         const friendshipsData = (
@@ -43,9 +47,14 @@ export const FriendsPage: React.FC<{ userId: number }> = ({ userId }) => {
         setAllUsers((await UserService.getAllUsers()).data.users);
     };
 
+    const loadUser = async () => {
+        setUser((await UserService.getUserById(userId)).data);
+    };
+
     useEffect(() => {
         loadFriends();
         loadAllUsers();
+        loadUser();
     }, []);
 
     useEffect(() => {
@@ -109,23 +118,33 @@ export const FriendsPage: React.FC<{ userId: number }> = ({ userId }) => {
             {inputValue !== "" ? (
                 localSearch.length === 0 ? (
                     <div className={s.empty}>
-                        No one has been found among your friends
+                        {userId === store.user.userId
+                            ? "No one has been found among your friends:"
+                            : `No one has been found among ${user.firstName} friends:`}
                     </div>
                 ) : (
                     <div className={s.block}>
                         <div className={s.text}>Your friends:</div>
                         {localSearch.map((friend) => (
-                            <UserCard user={friend} />
+                            <UserCard key={friend.userId} user={friend} />
                         ))}
                     </div>
                 )
             ) : friends.length === 0 ? (
-                <div className={s.empty}>You don't have any friends</div>
+                <div className={s.empty}>
+                    {userId === store.user.userId
+                        ? "You don't have any friends:"
+                        : `${user.firstName} don't have any friends:`}
+                </div>
             ) : (
                 <div className={s.block}>
-                    <div className={s.text}>Your friends:</div>
+                    <div className={s.text}>
+                        {userId === store.user.userId
+                            ? "Your friends:"
+                            : `${user.firstName} friends:`}
+                    </div>
                     {friends.map((friend) => (
-                        <UserCard user={friend} />
+                        <UserCard key={friend.userId} user={friend} />
                     ))}
                 </div>
             )}
@@ -134,7 +153,7 @@ export const FriendsPage: React.FC<{ userId: number }> = ({ userId }) => {
                     <div className={s.text}>Global search:</div>
                     {globalSearch.length !== 0 ? (
                         globalSearch.map((userData) => (
-                            <UserCard user={userData} />
+                            <UserCard key={userData.userId} user={userData} />
                         ))
                     ) : (
                         <div className={s.no_one}>No one has been found</div>

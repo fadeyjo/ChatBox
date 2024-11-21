@@ -66,10 +66,24 @@ class PostController {
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
-                throw ApiError.BadRequest("Incorrect children post id", errors.array());
+                throw ApiError.BadRequest(
+                    "Incorrect children post id",
+                    errors.array()
+                );
             }
             const childrenPostId = Number(req.params.childrenPostId);
-            const posts = await postService.getPostsByChildrenPostId(childrenPostId);
+            const posts = await postService.getPostsByChildrenPostId(
+                childrenPostId
+            );
+            res.json({ posts });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getAllPosts(req: Request, res: Response, next: NextFunction) {
+        try {
+            const posts = await postService.getAllPosts();
             res.json({ posts });
         } catch (error) {
             next(error);

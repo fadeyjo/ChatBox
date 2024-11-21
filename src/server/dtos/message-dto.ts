@@ -7,7 +7,7 @@ export default class MessageDto {
     isChecked: boolean;
     childrenMessageId: number | null;
     senderId: number;
-    recipientId: number;
+    chatId: number;
 
     constructor(message: IMessageFromDataBase) {
         this.messageId = message.message_id;
@@ -16,6 +16,6 @@ export default class MessageDto {
         this.isChecked = message.is_checked;
         this.childrenMessageId = message.children_message_id;
         this.senderId = message.sender_id;
-        this.recipientId = message.recipient_id;
+        this.chatId = message.chat_id;
     }
 }

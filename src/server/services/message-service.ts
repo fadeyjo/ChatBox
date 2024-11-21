@@ -4,37 +4,31 @@ import userService from "./user-service";
 import db from "../db";
 import dateTimeService from "./dateTime-service";
 import MessageDto from "../dtos/message-dto";
+import chatService from "./chat-service";
 
 class MessageService {
     async newMessage(
         content: string,
         childrenMessageId: number | null,
         senderId: number,
-        recipientId: number
+        chatId: number
     ) {
-        if (!(await userService.userIsExistsById(senderId))) {
+        if (!(await userService.userIsExistsById(senderId)))
             throw ApiError.BadRequest("Sender with this is isn't found");
-        }
-        if (!(await userService.userIsExistsById(recipientId))) {
-            throw ApiError.BadRequest("Recipient with this is isn't found");
-        }
+
+        if (!(await chatService.chatIsExistsById(chatId)))
+            throw ApiError.BadRequest("Chat isn't found");
         if (
             childrenMessageId &&
             !(await this.messageIsExistById(childrenMessageId))
-        ) {
+        )
             throw ApiError.BadRequest("Children message isn't found");
-        }
+
         const nowFormattedDate = dateTimeService.getNowDate();
         const messageData: IMessageFromDataBase = (
             await db.query(
-                "INSERT INTO messages (content, dispatch_date_time, children_message_id, sender_id, recipient_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-                [
-                    content,
-                    nowFormattedDate,
-                    childrenMessageId,
-                    senderId,
-                    recipientId,
-                ]
+                "INSERT INTO messages (content, dispatch_date_time, children_message_id, sender_id, chat_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+                [content, nowFormattedDate, childrenMessageId, senderId, chatId]
             )
         ).rows[0];
         messageData.dispatch_date_time = dateTimeService.formatDateTime(
@@ -43,40 +37,20 @@ class MessageService {
         return new MessageDto(messageData);
     }
 
-    async getMessages(firstUserId: number, secondUserId: number) {
-        if (!(await userService.userIsExistsById(firstUserId))) {
-            throw ApiError.BadRequest("First with this is isn't found");
-        }
-        if (!(await userService.userIsExistsById(secondUserId))) {
-            throw ApiError.BadRequest("Second with this is isn't found");
-        }
-        const messages: IMessageFromDataBase[] = (
-            await db.query(
-                "SELECT * FROM messages WHERE (sender_id = $1 AND recipient_id = $2) OR (sender_id = $2 AND recipient_id = $1)",
-                [firstUserId, secondUserId]
-            )
+    async getMessagesByChatId(chatId: number) {
+        if (!(await chatService.chatIsExistsById(chatId))) return [];
+
+        const messagesData: IMessageFromDataBase[] = (
+            await db.query("SELECT * FROM messages WHERE chat_id = $1", [
+                chatId,
+            ])
         ).rows;
-        return messages.map((message) => {
+        return messagesData.map((message) => {
             message.dispatch_date_time = dateTimeService.formatDateTime(
                 message.dispatch_date_time
             );
             return new MessageDto(message);
         });
-    }
-
-    async getMessageById(messageId: number) {
-        if (!(await this.messageIsExistById(messageId))) {
-            throw ApiError.ResourseNotFound();
-        }
-        const messageData: IMessageFromDataBase = (
-            await db.query("SELECT * FROM messages WHERE message_id = $1", [
-                messageId,
-            ])
-        ).rows[0];
-        messageData.dispatch_date_time = dateTimeService.formatDateTime(
-            messageData.dispatch_date_time
-        );
-        return new MessageDto(messageData);
     }
 
     async deleteMessages(messageId: number) {
@@ -88,6 +62,20 @@ class MessageService {
                 "DELETE FROM messages WHERE message_id = $1 RETURNING *",
                 [messageId]
             )
+        ).rows[0];
+        messageData.dispatch_date_time = dateTimeService.formatDateTime(
+            messageData.dispatch_date_time
+        );
+        return new MessageDto(messageData);
+    }
+
+    async getMessageById(messageId: number) {
+        if (!(await this.messageIsExistById(messageId)))
+            throw ApiError.BadRequest("Message isn't found");
+        const messageData: IMessageFromDataBase = (
+            await db.query("SELECT * FROM messages WHERE message_id = $1", [
+                messageId,
+            ])
         ).rows[0];
         messageData.dispatch_date_time = dateTimeService.formatDateTime(
             messageData.dispatch_date_time

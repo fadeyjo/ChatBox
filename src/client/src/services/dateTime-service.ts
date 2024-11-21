@@ -13,52 +13,52 @@ export default class DateTimeService {
 
         if (pubYear === nowYear && pubMonth === nowMonth) {
             if (nowDay === pubDay) {
-                return `сегодня в ${pubTime}`;
+                return `today in ${pubTime}`;
             }
             if (nowDay - pubDay == 1) {
-                return `вчера в ${pubTime}`;
+                return `yestarday in ${pubTime}`;
             }
         }
 
-        let stringMonth = "дек";
+        let stringMonth = "dec";
 
         switch (pubMonth) {
             case 1:
-                stringMonth = "янв";
+                stringMonth = "jan";
                 break;
             case 2:
-                stringMonth = "фев";
+                stringMonth = "feb";
                 break;
             case 3:
-                stringMonth = "мар";
+                stringMonth = "mar";
                 break;
             case 4:
-                stringMonth = "апр";
+                stringMonth = "apr";
                 break;
             case 5:
-                stringMonth = "мая";
+                stringMonth = "may";
                 break;
             case 6:
-                stringMonth = "июю";
+                stringMonth = "jun";
                 break;
             case 7:
-                stringMonth = "июл";
+                stringMonth = "jul";
                 break;
             case 8:
-                stringMonth = "авг";
+                stringMonth = "aug";
                 break;
             case 9:
-                stringMonth = "сен";
+                stringMonth = "sep";
                 break;
             case 10:
-                stringMonth = "окт";
+                stringMonth = "oct";
                 break;
             case 11:
-                stringMonth = "ноя";
+                stringMonth = "nov";
                 break;
             default:
         }
-        if (pubYear !== nowYear) return `${pubDay} ${stringMonth} в ${pubYear}`;
+        if (pubYear !== nowYear) return `${pubDay} ${stringMonth} in ${pubYear}`;
         return `${pubDay} ${stringMonth}`;
     }
 }

@@ -7,6 +7,9 @@ import FriendshipService from "../../services/friendship-service";
 import SubscribersPageOwnersService from "../../services/subscribersPageOwners-service";
 import { FormButton } from "../UI/FormButton/FormButton";
 import { useNavigate } from "react-router-dom";
+import io from "socket.io-client";
+import { globalSocket } from "../../globalSocket";
+import ChatService from "../../services/chat-service";
 
 export const UserCard: React.FC<{ user: IUser }> = ({ user }) => {
     const { store } = useContext(Context);
@@ -71,6 +74,15 @@ export const UserCard: React.FC<{ user: IUser }> = ({ user }) => {
     useEffect(() => {
         setSelfRelationship();
         loadImage();
+        const newSocket = io(globalSocket);
+        newSocket.emit("subscribe_image", {
+            userId: user.userId,
+        });
+        newSocket.on("set_image", () => loadImage());
+        return () => {
+            newSocket.off("set_image");
+            newSocket.disconnect();
+        };
     });
 
     return (
@@ -85,7 +97,35 @@ export const UserCard: React.FC<{ user: IUser }> = ({ user }) => {
                     {[user.lastName, user.firstName, user.patronymic].join(" ")}
                 </div>
                 <div className={s.nick}>@{user.nickname}</div>
-                <div className={s.write_mes}>Написать сообщение</div>
+                {!isSelf && (
+                    <div
+                        className={s.write_mes}
+                        onClick={async () => {
+                            const chats = (await ChatService.getChatsByUser())
+                                .data.chats;
+                            let chatId = 0;
+                            let isExists = false;
+                            for (let i = 0; i < chats.length; i++) {
+                                if (
+                                    chats[i].firstUserId === user.userId ||
+                                    chats[i].secondUserId === user.userId
+                                ) {
+                                    chatId = chats[i].chatId;
+                                    isExists = true;
+                                    break;
+                                }
+                            }
+                            if (!isExists) {
+                                chatId = (
+                                    await ChatService.newChat(user.userId)
+                                ).data.chatId;
+                            }
+                            navigate(`/chats/${chatId}`);
+                        }}
+                    >
+                        Send message
+                    </div>
+                )}
             </div>
             {isSelf ? (
                 <div className={s.you}>It's you!!!</div>

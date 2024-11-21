@@ -8,12 +8,10 @@ import React, {
 import s from "./ProfileInfo.module.css";
 import IProfileInfo from "../../interfaces/IProps/IProfileInfo";
 import classNames from "classnames";
-import FriendshipService from "../../services/friendship-service";
-import SubscribersPageOwnersService from "../../services/subscribersPageOwners-service";
-import UserService from "../../services/user-service";
 import { globalSocket } from "../../globalSocket";
 import io from "socket.io-client";
 import ProfileImageService from "../../services/profileImage-service";
+import { Context } from "../..";
 
 const ProfileInfo: React.FC<IProfileInfo> = ({
     userId,
@@ -24,9 +22,10 @@ const ProfileInfo: React.FC<IProfileInfo> = ({
     subscribersAmount,
     subscribesAmount,
     isSelfPage,
-    socket,
     nickname,
 }) => {
+    const { store } = useContext(Context);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [imageSrc, setImageSrc] = useState("");
@@ -43,19 +42,37 @@ const ProfileInfo: React.FC<IProfileInfo> = ({
         const formData = new FormData();
         formData.append("image", file);
         await ProfileImageService.newProfileImage(formData);
-        socket.emit("change_profile_image", { userId });
+        const newSrc = (await ProfileImageService.getProfileImage(userId)).data
+            .src;
+        setImageSrc(newSrc);
+        const newSocket = io(globalSocket);
+        newSocket.emit("change_image", { userId });
     };
 
     const setImage = async () => {
-        setImageSrc(
-            (await ProfileImageService.getProfileImage(userId)).data.src
-        );
+        const newSrc = (await ProfileImageService.getProfileImage(userId)).data
+            .src;
+        setImageSrc(newSrc);
     };
 
     useEffect(() => {
         setImage();
-        if (socket) socket.on("receive_profile_image", () => setImage());
-    }, [socket]);
+        const socket = io(globalSocket);
+        if (!isSelfPage) {
+            socket.emit("subscribe_image", {
+                userId: userId,
+            });
+            socket.on("set_image", () => {
+                setImage();
+            });
+        }
+
+        return () => {
+            if (isSelfPage) return;
+            socket.off("set_image");
+            socket.disconnect();
+        };
+    }, []);
 
     return (
         <div className={s.profile_info}>

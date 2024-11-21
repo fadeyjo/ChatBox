@@ -12,13 +12,13 @@ class MessageController {
                 throw ApiError.BadRequest("Incorrect body", errors.array());
             }
             const senderId = Number(res.locals.userData.userId);
-            const { content, recipientId, childrenMessageId }: INewMessage =
+            const { content, chatId, childrenMessageId }: INewMessage =
                 req.body;
             const messageData = await messageService.newMessage(
                 content,
                 childrenMessageId,
                 senderId,
-                recipientId
+                chatId
             );
             res.json({ ...messageData });
         } catch (error) {
@@ -26,43 +26,31 @@ class MessageController {
         }
     }
 
-    async getMessagesBySecondFriendId(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ) {
+    async getMessagesByChatId(req: Request, res: Response, next: NextFunction) {
         try {
             const errors = validationResult(req);
-            if (!errors.isEmpty()) {
-                throw ApiError.BadRequest("Second user id is null", errors.array());
-            }
-            const firstUserId = Number(res.locals.userData.userId);
-            const secondUserId = Number(req.params.secondUserId);
-            const messages = await messageService.getMessages(
-                firstUserId,
-                secondUserId
-            );
+            if (!errors.isEmpty())
+                throw ApiError.BadRequest("Incorrect chat id", errors.array());
+
+            const chatId = Number(req.params.chatId);
+            const messages = await messageService.getMessagesByChatId(chatId);
             res.json({ messages });
         } catch (error) {
             next(error);
         }
     }
 
-    async getMessageById(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ) {
+    async getMessageById(req: Request, res: Response, next: NextFunction) {
         try {
             const errors = validationResult(req);
-            if (!errors.isEmpty()) {
-                throw ApiError.BadRequest("Incorrect message id", errors.array());
-            }
+            if (!errors.isEmpty())
+                throw ApiError.BadRequest(
+                    "Incorrect message id",
+                    errors.array()
+                );
             const messageId = Number(req.params.messageId);
-            const messages = await messageService.getMessageById(
-                messageId
-            );
-            res.json({ ...messages });
+            const message = await messageService.getMessageById(messageId);
+            res.json({ ...message });
         } catch (error) {
             next(error);
         }
@@ -71,9 +59,11 @@ class MessageController {
     async deleteMessageById(req: Request, res: Response, next: NextFunction) {
         try {
             const errors = validationResult(req);
-            if (!errors.isEmpty()) {
-                throw ApiError.BadRequest("", errors.array());
-            }
+            if (!errors.isEmpty())
+                throw ApiError.BadRequest(
+                    "Incorrect message id",
+                    errors.array()
+                );
             const messageId = Number(req.params.messageId);
             const message = await messageService.deleteMessages(messageId);
             res.json({ ...message });

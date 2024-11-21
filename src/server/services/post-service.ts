@@ -128,6 +128,18 @@ class PostService {
         ).rows;
         return ids;
     }
+
+    async getAllPosts() {
+        const posts: IPostFromDataBase[] = (
+            await db.query("SELECT * FROM posts", [])
+        ).rows;
+        return posts.map((post) => {
+            post.publication_date_time = dateTimeService.formatDateTime(
+                post.publication_date_time
+            );
+            return new PostDto(post);
+        });
+    }
 }
 
 export default new PostService();

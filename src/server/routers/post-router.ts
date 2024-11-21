@@ -6,6 +6,7 @@ import { param } from "express-validator";
 const postRouter = Router();
 
 postRouter.post("/", authMiddleware, postController.newPost);
+postRouter.get("/all", authMiddleware, postController.getAllPosts)
 postRouter.get(
     "/repost/:childrenPostId",
     param("childrenPostId").isNumeric(),

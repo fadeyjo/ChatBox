@@ -14,8 +14,10 @@ import IUser from "../../interfaces/IResponses/IUser";
 import UserService from "../../services/user-service";
 import FriendshipService from "../../services/friendship-service";
 import SubscribersPageOwnersService from "../../services/subscribersPageOwners-service";
-import { globalSocket } from "../../globalSocket";
+import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
+import { globalSocket } from "../../globalSocket";
+import ChatService from "../../services/chat-service";
 
 const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
     const { store } = useContext(Context);
@@ -23,7 +25,6 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
     const isSelfPage = userId === store.user.userId;
 
     const [user, setUser] = useState<IUser>({} as IUser);
-    const [socket, setSocket] = useState<any>(null);
     const [friendsAmount, setFriendsAmount] = useState(0);
     const [subscribersAmount, setSubscribersAmount] = useState(0);
     const [subscribesAmount, setSubscribesAmount] = useState(0);
@@ -33,6 +34,8 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
     const [isSubscriber, setIsSubscriber] = useState(false);
     const [isSubscribes, setIsSubscribes] = useState(false);
     const [repost, setRepost] = useState<IGetPost | null>(null);
+
+    const navigate = useNavigate();
 
     const setRelationships = async () => {
         setFriendsAmount(
@@ -105,21 +108,22 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
         UserService.getUserById(userId)
             .then((response) => response.data)
             .then((data) => setUser(data));
-        const newSocket = io(globalSocket);
-        setSocket(newSocket);
-        newSocket.emit("subscribe_profile", {
-            userId,
-            subscriberId: store.user.userId,
+        if (isSelfPage) return;
+        const socket = io(globalSocket);
+        socket.emit("subscribe_post", { userId });
+        socket.on("add_post", ({ post }: { post: IGetPost }) => {
+            setPosts((prev) => [post, ...prev]);
         });
-        newSocket.on("receive_self_relationship", () => setSelfRelationship());
-        newSocket.on("receive_relationship", () => setRelationships());
-        newSocket.on("receive_posts", () => loadPosts()); ///!!!!!!
+        socket.on("filter_posts", ({ postId }: { postId: number }) => {
+            setPosts((prev) =>
+                prev.filter((postData) => postData.postId !== postId)
+            );
+        });
         return () => {
-            newSocket.off("receive_self_relationship");
-            newSocket.off("receive_posts");
-            newSocket.off("receive_profile_image");
-            newSocket.off("receive_relationship");
-            newSocket.disconnect();
+            if (isSelfPage) return;
+            socket.off("add_post");
+            socket.off("filter_posts");
+            socket.disconnect();
         };
     }, [userId]);
 
@@ -135,116 +139,140 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
                     subscribersAmount={subscribersAmount}
                     subscribesAmount={subscribesAmount}
                     isSelfPage={isSelfPage}
-                    socket={socket}
                     nickname={user.nickname}
                 />
-                {isSelfPage ? (
-                    <FormButton
-                        onClick={() => {
-                            setCreatePostFormIsOpened(true);
-                        }}
-                        className={s.create_post_button}
-                        type="button"
-                    >
-                        Create post
-                    </FormButton>
-                ) : isFriend ? (
-                    <FormButton
-                        onClick={async () => {
-                            await FriendshipService.deleteFriend(userId);
-                            await SubscribersPageOwnersService.newSubscribersPageOwners(
-                                userId,
-                                store.user.userId
-                            );
-                            setIsFriend(false);
-                            setIsSubscriber(true);
-                            if (socket) {
-                                socket.emit("change_relationship", {
+                <div className={s.manage_buttons}>
+                    {isSelfPage ? (
+                        <>
+                            <FormButton
+                                onClick={() => {
+                                    setCreatePostFormIsOpened(true);
+                                }}
+                                className={s.create_post_button}
+                                type="button"
+                            >
+                                Create post
+                            </FormButton>
+                        </>
+                    ) : isFriend ? (
+                        <FormButton
+                            onClick={async () => {
+                                await FriendshipService.deleteFriend(userId);
+                                await SubscribersPageOwnersService.newSubscribersPageOwners(
                                     userId,
-                                });
-                                socket.emit("change_self_relationship", {
+                                    store.user.userId
+                                );
+                                setIsFriend(false);
+                                setIsSubscriber(true);
+                            }}
+                            className={s.create_post_button}
+                            type="button"
+                        >
+                            Delete friend
+                        </FormButton>
+                    ) : isSubscriber ? (
+                        <FormButton
+                            onClick={async () => {
+                                await SubscribersPageOwnersService.deleteSubscribersPageOwners(
                                     userId,
-                                    selfUserId: store.user.userId,
-                                });
-                            }
-                        }}
-                        className={s.create_post_button}
-                        type="button"
-                    >
-                        Delete friend
-                    </FormButton>
-                ) : isSubscriber ? (
-                    <FormButton
-                        onClick={async () => {
-                            await SubscribersPageOwnersService.deleteSubscribersPageOwners(
-                                userId,
-                                store.user.userId
-                            );
-                            await FriendshipService.newFriendShip(userId);
-                            setIsFriend(true);
-                            setIsSubscriber(false);
-                            if (socket) {
-                                socket.emit("change_relationship", {
-                                    userId,
-                                });
-                                socket.emit("change_self_relationship", {
-                                    userId,
-                                    selfUserId: store.user.userId,
-                                });
-                            }
-                        }}
-                        className={s.create_post_button}
-                        type="button"
-                    >
-                        Add friend
-                    </FormButton>
-                ) : isSubscribes ? (
-                    <FormButton
-                        onClick={async () => {
-                            await SubscribersPageOwnersService.deleteSubscribersPageOwners(
-                                store.user.userId,
-                                userId
-                            );
-                            setIsSubscribes(false);
-                            if (socket) {
-                                socket.emit("change_relationship", {
-                                    userId,
-                                });
-                                socket.emit("change_self_relationship", {
-                                    userId,
-                                    selfUserId: store.user.userId,
-                                });
-                            }
-                        }}
-                        className={s.create_post_button}
-                        type="button"
-                    >
-                        Unsubscribe
-                    </FormButton>
-                ) : (
-                    <FormButton
-                        onClick={async () => {
-                            await SubscribersPageOwnersService.newSubscribersPageOwners(
-                                store.user.userId,
-                                userId
-                            );
-                            setIsSubscribes(true);
-                            if (socket) {
-                                socket.emit("change_relationship", {
-                                    userId,
-                                });
-                                socket.emit("change_self_relationship", {
-                                    userId,
-                                    selfUserId: store.user.userId,
-                                });
-                            }
-                        }}
-                        className={s.create_post_button}
-                        type="button"
-                    >
-                        Subscribe
-                    </FormButton>
-                )}
+                                    store.user.userId
+                                );
+                                await FriendshipService.newFriendShip(userId);
+                                setIsFriend(true);
+                                setIsSubscriber(false);
+                            }}
+                            className={s.create_post_button}
+                            type="button"
+                        >
+                            Add friend
+                        </FormButton>
+                    ) : isSubscribes ? (
+                        <FormButton
+                            onClick={async () => {
+                                await SubscribersPageOwnersService.deleteSubscribersPageOwners(
+                                    store.user.userId,
+                                    userId
+                                );
+                                setIsSubscribes(false);
+                            }}
+                            className={s.create_post_button}
+                            type="button"
+                        >
+                            Unsubscribe
+                        </FormButton>
+                    ) : (
+                        <FormButton
+                            onClick={async () => {
+                                await SubscribersPageOwnersService.newSubscribersPageOwners(
+                                    store.user.userId,
+                                    userId
+                                );
+                                setIsSubscribes(true);
+                            }}
+                            className={s.create_post_button}
+                            type="button"
+                        >
+                            Subscribe
+                        </FormButton>
+                    )}
+                    {!isSelfPage && (
+                        <>
+                            <FormButton
+                                type="button"
+                                onClick={() => navigate(`/friends/${userId}`)}
+                            >
+                                Friends
+                            </FormButton>
+                            <FormButton
+                                type="button"
+                                onClick={() =>
+                                    navigate(`/subscribers/${userId}`)
+                                }
+                            >
+                                Subscribers
+                            </FormButton>
+                            <FormButton
+                                type="button"
+                                onClick={() =>
+                                    navigate(`/subscribes/${userId}`)
+                                }
+                            >
+                                Subscribes
+                            </FormButton>
+                        </>
+                    )}
+                </div>
+                <div>
+                    {!isSelfPage && (
+                        <div
+                            onClick={async () => {
+                                const chats = (
+                                    await ChatService.getChatsByUser()
+                                ).data.chats;
+                                let chatId = 0;
+                                let isExists = false;
+                                for (let i = 0; i < chats.length; i++) {
+                                    if (
+                                        chats[i].firstUserId === userId ||
+                                        chats[i].secondUserId === userId
+                                    ) {
+                                        chatId = chats[i].chatId;
+                                        isExists = true;
+                                        break;
+                                    }
+                                }
+                                if (!isExists) {
+                                    chatId = (await ChatService.newChat(userId))
+                                        .data.chatId;
+                                }
+                                navigate(`/chats/${chatId}`);
+                            }}
+                            className={s.send_message}
+                        >
+                            Send message
+                        </div>
+                    )}
+                </div>
             </div>
             {posts.length !== 0 && (
                 <div className={s.posts}>
@@ -268,6 +296,7 @@ const ProfilePage: React.FC<{ userId: number }> = ({ userId }) => {
                 header="New post"
             >
                 <NewPostForm
+                    isFromPostsPage={false}
                     setCreatePostFormIsOpened={setCreatePostFormIsOpened}
                     setPosts={setPosts}
                     repost={repost}

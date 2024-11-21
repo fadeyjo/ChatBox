@@ -123,14 +123,26 @@ const Post: React.FC<IPost> = ({
         if (!isChild) {
             loadComments();
         }
-        const newSocket = io(globalSocket);
-        setSocket(newSocket);
-        newSocket.emit("subscribe_post", {
-            postId: post.postId,
-            subscriberId: store.user.userId,
+        const socket = io(globalSocket);
+        socket.emit("subscribe_image", {
+            userId: post.postAuthorId,
         });
-        newSocket.on("receive_profile_image", () => loadPostAvatarImage());
-        return () => {};
+        socket.emit("subscribe_like", {
+            postId: post.postId,
+            authorId: store.user.userId,
+        });
+        socket.on("set_image", () => {
+            loadPostAvatarImage();
+        });
+        socket.on("set_like", ({ operation }: { operation: number }) => {
+            console.log(operation)
+            setReactionsAmount((prev) => prev + operation);
+        });
+        return () => {
+            socket.off("set_like");
+            socket.off("set_image");
+            socket.disconnect();
+        };
     }, []);
 
     return (
@@ -249,6 +261,12 @@ const Post: React.FC<IPost> = ({
                                               );
                                               setIsReaction(false);
                                           });
+                                      const socket = io(globalSocket);
+                                      socket.emit("change_like", {
+                                          postId: post.postId,
+                                          operation: -1,
+                                          authorId: store.user.userId,
+                                      });
                                   }
                                 : () => {
                                       ReactionService.newReaction(post.postId)
@@ -259,6 +277,12 @@ const Post: React.FC<IPost> = ({
                                               );
                                               setIsReaction(true);
                                           });
+                                      const socket = io(globalSocket);
+                                      socket.emit("change_like", {
+                                          postId: post.postId,
+                                          operation: 1,
+                                          authorId: store.user.userId,
+                                      });
                                   }
                         }
                     >
@@ -309,6 +333,11 @@ const Post: React.FC<IPost> = ({
                                                 postData.postId !== post.postId
                                         )
                                     );
+                                const socket = io(globalSocket);
+                                socket.emit("delete_post", {
+                                    postId: data.postId,
+                                    authorId: data.postAuthorId,
+                                });
                             });
                     }}
                 />

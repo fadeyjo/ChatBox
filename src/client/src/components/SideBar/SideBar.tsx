@@ -19,7 +19,7 @@ export const SideBar: React.FC = () => {
             <SideBarElement onClick={() => {navigate("/posts")}}>
                 <BsPostcard /> Posts
             </SideBarElement>
-            <SideBarElement onClick={() => {navigate("/messages")}}>
+            <SideBarElement onClick={() => {navigate("/chats")}}>
                 <LuMessageSquare /> Messages
             </SideBarElement>
             <SideBarElement onClick={() => {navigate("/friends")}}>

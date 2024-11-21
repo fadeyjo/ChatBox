@@ -8,7 +8,7 @@ const messageRouter = Router();
 messageRouter.post(
     "/",
     body("content").isLength({ min: 1 }),
-    body("recipientId").isNumeric(),
+    body("chatId").isNumeric(),
     authMiddleware,
     messageController.newMessage
 );
@@ -19,11 +19,12 @@ messageRouter.get(
     messageController.getMessageById
 );
 messageRouter.get(
-    "/:secondUserId",
-    param("secondUserId").isNumeric(),
+    "/:chatId",
+    param("chatId").isNumeric(),
     authMiddleware,
-    messageController.getMessagesBySecondFriendId
+    messageController.getMessagesByChatId
 );
+
 messageRouter.delete(
     "/:messageId",
     param("messageId").isNumeric(),

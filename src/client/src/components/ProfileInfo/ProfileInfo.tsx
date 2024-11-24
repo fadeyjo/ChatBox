@@ -12,6 +12,8 @@ import { globalSocket } from "../../globalSocket";
 import io from "socket.io-client";
 import ProfileImageService from "../../services/profileImage-service";
 import { Context } from "../..";
+import { GrStatusGoodSmall } from "react-icons/gr";
+import UserService from "../../services/user-service";
 
 const ProfileInfo: React.FC<IProfileInfo> = ({
     userId,
@@ -29,6 +31,7 @@ const ProfileInfo: React.FC<IProfileInfo> = ({
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [imageSrc, setImageSrc] = useState("");
+    const [isOnline, setIsOnline] = useState(false);
 
     const setNewImage = async (event: ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
@@ -55,6 +58,10 @@ const ProfileInfo: React.FC<IProfileInfo> = ({
         setImageSrc(newSrc);
     };
 
+    const loadIsOnline = async () => {
+        setIsOnline((await UserService.getStatus(userId)).data.isOnline);
+    };
+
     useEffect(() => {
         setImage();
         const socket = io(globalSocket);
@@ -62,13 +69,20 @@ const ProfileInfo: React.FC<IProfileInfo> = ({
             socket.emit("subscribe_image", {
                 userId: userId,
             });
+            socket.emit("subscribe_online", { userId });
             socket.on("set_image", () => {
                 setImage();
             });
+            socket.on("set_status", ({ isOnline }: { isOnline: boolean }) => {
+                console.log(isOnline);
+                setIsOnline(isOnline);
+            });
+            loadIsOnline();
         }
 
         return () => {
             if (isSelfPage) return;
+            socket.off("set_status");
             socket.off("set_image");
             socket.disconnect();
         };
@@ -85,7 +99,11 @@ const ProfileInfo: React.FC<IProfileInfo> = ({
                     isSelfPage ? () => fileInputRef.current?.click() : () => {}
                 }
                 style={{ backgroundImage: `url(${imageSrc})` }}
-            ></div>
+            >
+                {(isSelfPage || isOnline) && (
+                    <GrStatusGoodSmall className={s.online} />
+                )}
+            </div>
             <div className={s.fio_email}>
                 <div className={s.fio}>
                     {[lastName, firstName, patronymic].join(" ")}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import s from "./SideBar.module.css";
 import { SideBarElement } from "../UI/SideBarElement/SideBarElement";
 import { ImProfile } from "react-icons/im";
@@ -11,24 +11,49 @@ import { useNavigate } from "react-router-dom";
 
 export const SideBar: React.FC = () => {
     const navigate = useNavigate();
+
     return (
         <nav className={s.nav_bar}>
-            <SideBarElement onClick={() => {navigate("/profile")}}>
+            <SideBarElement
+                onClick={() => {
+                    navigate("/profile");
+                }}
+            >
                 <ImProfile /> Profile
             </SideBarElement>
-            <SideBarElement onClick={() => {navigate("/posts")}}>
+            <SideBarElement
+                onClick={() => {
+                    navigate("/posts");
+                }}
+            >
                 <BsPostcard /> Posts
             </SideBarElement>
-            <SideBarElement onClick={() => {navigate("/chats")}}>
-                <LuMessageSquare /> Messages
+            <SideBarElement
+                onClick={() => {
+                    navigate("/chats");
+                }}
+            >
+                <LuMessageSquare /> Chats
             </SideBarElement>
-            <SideBarElement onClick={() => {navigate("/friends")}}>
+            <SideBarElement
+                onClick={() => {
+                    navigate("/friends");
+                }}
+            >
                 <LiaUserFriendsSolid /> Friends
             </SideBarElement>
-            <SideBarElement onClick={() => {navigate("/subscribers")}}>
+            <SideBarElement
+                onClick={() => {
+                    navigate("/subscribers");
+                }}
+            >
                 <BsPeople /> Subscribers
             </SideBarElement>
-            <SideBarElement onClick={() => {navigate("/subscribes")}}>
+            <SideBarElement
+                onClick={() => {
+                    navigate("/subscribes");
+                }}
+            >
                 <BsFillPeopleFill /> My subscribes
             </SideBarElement>
         </nav>

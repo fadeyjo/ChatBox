@@ -35,6 +35,7 @@
     background-repeat: no-repeat;
     border-radius: 80px;
     background-size: cover;
+    position: relative;
 }
 
 .date_time_fio {
@@ -135,4 +136,12 @@
 .reaction_button:hover,
 .repost_button:hover {
     cursor: pointer;
+}
+
+.online {
+    position: absolute;
+    font-size: 20px;
+    right: 5px;
+    bottom: 5px;
+    color: var(--header-bg-color);
 }

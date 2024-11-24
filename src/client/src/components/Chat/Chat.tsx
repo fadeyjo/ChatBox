@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import s from "./Chat.module.css";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import IGetMessage from "../../interfaces/IResponses/IGetMessage";
 import MessageService from "../../services/message-service";
 import { Message } from "../Message/Message";
@@ -14,6 +14,7 @@ import { IoMdSend } from "react-icons/io";
 import { IoMdClose } from "react-icons/io";
 import io from "socket.io-client";
 import { globalSocket } from "../../globalSocket";
+import { ChatHeader } from "../ChatHeader/ChatHeader";
 
 export const Chat: React.FC = () => {
     const { chatId } = useParams();
@@ -21,6 +22,7 @@ export const Chat: React.FC = () => {
     const { store } = useContext(Context);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
 
     const [messages, setMessages] = useState<IGetMessage[]>([]);
     const [user, setUser] = useState({} as IUser);
@@ -32,8 +34,36 @@ export const Chat: React.FC = () => {
         content: string;
         childrenMessageId: number;
     } | null>(null);
+    const [isOnline, setIsOnline] = useState(false);
 
-    const navigate = useNavigate();
+    const sendMessage = () => {
+        if (input === "" || !chatId) return;
+        MessageService.newMessage(
+            input,
+            Number(chatId),
+            resend?.childrenMessageId
+        )
+            .then((response) => response.data)
+            .then((data) => {
+                setMessages((prev) => [...prev, data]);
+                setInput("");
+                setResend(null);
+                const socket = io(globalSocket);
+                socket.emit("new_message", {
+                    chatId: Number(chatId),
+                    userId: store.user.userId,
+                    message: {
+                        messageId: data.messageId,
+                        content: data.content,
+                        dispatchDateTime: data.dispatchDateTime,
+                        isChecked: data.isChecked,
+                        childrenMessageId: data.childrenMessageId,
+                        senderId: data.senderId,
+                        chatId: data.chatId,
+                    },
+                });
+            });
+    };
 
     const loadMessages = async () => {
         setMessages(
@@ -55,6 +85,7 @@ export const Chat: React.FC = () => {
             chatData.firstUserId === store.user.userId
                 ? chatData.secondUserId
                 : chatData.firstUserId;
+        setIsOnline((await UserService.getStatus(userId)).data.isOnline);
         setUser((await UserService.getUserById(userId)).data);
         setImage((await ProfileImageService.getProfileImage(userId)).data.src);
         return chatData;
@@ -81,6 +112,9 @@ export const Chat: React.FC = () => {
     };
 
     useEffect(() => {
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
         loadMessages();
         const newSocket = io(globalSocket);
         newSocket.emit("subscribe_messages", {
@@ -88,11 +122,19 @@ export const Chat: React.FC = () => {
             userId: store.user.userId,
         });
         loadChat().then((response) => {
+            const userId =
+                response?.firstUserId === store.user.userId
+                    ? response.secondUserId
+                    : response?.firstUserId;
+            newSocket.emit("subscribe_online", { userId });
+            newSocket.on(
+                "set_status",
+                ({ isOnline }: { isOnline: boolean }) => {
+                    setIsOnline(isOnline);
+                }
+            );
             newSocket.emit("subscribe_image", {
-                userId:
-                    response?.firstUserId === store.user.userId
-                        ? response.secondUserId
-                        : response?.firstUserId,
+                userId,
             });
         });
         newSocket.on("add_message", ({ message }: { message: IGetMessage }) => {
@@ -101,6 +143,7 @@ export const Chat: React.FC = () => {
         newSocket.on("filter_messages", deleteMessage);
         newSocket.on("set_image", () => loadChat());
         return () => {
+            newSocket.off("set_status");
             newSocket.off("set_image");
             newSocket.off("filter_messages");
             newSocket.off("add_message");
@@ -119,22 +162,7 @@ export const Chat: React.FC = () => {
 
     return (
         <div className={s.chat_container}>
-            <div className={s.header}>
-                <div
-                    onClick={() => navigate(`/profile/${user.userId}`)}
-                    className={s.image}
-                    style={{ backgroundImage: `url(${image})` }}
-                ></div>
-                <div
-                    className={s.fio}
-                    onClick={() => navigate(`/profile/${user.userId}`)}
-                >
-                    {[user.lastName, user.firstName, user.patronymic].join(" ")}
-                </div>
-                <div className={s.back} onClick={() => navigate(-1)}>
-                    Back
-                </div>
-            </div>
+            <ChatHeader user={user} image={image} isOnline={isOnline} />
             <div
                 ref={messagesEndRef}
                 className={s.messages}
@@ -172,6 +200,7 @@ export const Chat: React.FC = () => {
             )}
             <div className={s.new_message_conteiner}>
                 <textarea
+                    ref={inputRef}
                     value={input}
                     onChange={(event) => {
                         event.target.style.height = "auto";
@@ -180,39 +209,13 @@ export const Chat: React.FC = () => {
                     }}
                     className={s.new_message}
                     placeholder="Type your message..."
-                ></textarea>
-                <IoMdSend
-                    className={s.input}
-                    onClick={() => {
-                        if (input === "" || !chatId) return;
-                        MessageService.newMessage(
-                            input,
-                            Number(chatId),
-                            resend?.childrenMessageId
-                        )
-                            .then((response) => response.data)
-                            .then((data) => {
-                                setMessages((prev) => [...prev, data]);
-                                setInput("");
-                                setResend(null);
-                                const socket = io(globalSocket);
-                                socket.emit("new_message", {
-                                    chatId: Number(chatId),
-                                    userId: store.user.userId,
-                                    message: {
-                                        messageId: data.messageId,
-                                        content: data.content,
-                                        dispatchDateTime: data.dispatchDateTime,
-                                        isChecked: data.isChecked,
-                                        childrenMessageId:
-                                            data.childrenMessageId,
-                                        senderId: data.senderId,
-                                        chatId: data.chatId,
-                                    },
-                                });
-                            });
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                            sendMessage();
+                        }
                     }}
-                />
+                ></textarea>
+                <IoMdSend className={s.input} onClick={sendMessage} />
             </div>
         </div>
     );

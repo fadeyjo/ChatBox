@@ -61,10 +61,21 @@ userRouter.get(
     userController.refresh
 );
 userRouter.get(
+    "/online/:userId",
+    param("userId").isNumeric(),
+    userController.getStatus
+);
+userRouter.get(
     "/:userId",
     param("userId").isNumeric(),
     authMiddleware,
     userController.getUserById
+);
+userRouter.put(
+    "/",
+    body("isOnline").isBoolean(),
+    authMiddleware,
+    userController.setStatus
 );
 
 export default userRouter;

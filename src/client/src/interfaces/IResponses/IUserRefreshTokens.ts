@@ -8,4 +8,5 @@ export default interface IUserRefreshTokens {
     email: string;
     nickname: string;
     hashedPassword: string;
+    isOnline: boolean | null;
 }

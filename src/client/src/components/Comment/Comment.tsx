@@ -10,12 +10,16 @@ import { Context } from "../..";
 import { observer } from "mobx-react-lite";
 import CommentService from "../../services/comment-service";
 import { useNavigate } from "react-router-dom";
+import { globalSocket } from "../../globalSocket";
+import io from "socket.io-client";
+import { GrStatusGoodSmall } from "react-icons/gr";
 
 const Comment: React.FC<IComment> = ({ comment, setComments, isMyPost }) => {
     const { store } = useContext(Context);
 
     const [commentAuthor, setCommentAuthor] = useState({} as IUser);
     const [commentAvatar, setCommentAvatar] = useState("");
+    const [isOnline, setIsOnline] = useState(false);
 
     const navigate = useNavigate();
 
@@ -38,9 +42,25 @@ const Comment: React.FC<IComment> = ({ comment, setComments, isMyPost }) => {
         );
     };
 
+    const loadIsOnline = async () => {
+        setIsOnline(
+            (await UserService.getStatus(comment.commentAuthorId)).data.isOnline
+        );
+    };
+
     useEffect(() => {
         loadCommentAvatarImage();
         loadCommentAuthor();
+        loadIsOnline();
+        const socket = io(globalSocket);
+        socket.emit("subscribe_online", { userId: comment.commentAuthorId });
+        socket.on("set_status", ({ isOnline }: { isOnline: boolean }) => {
+            setIsOnline(isOnline);
+        });
+        return () => {
+            socket.off("set_status");
+            socket.disconnect();
+        };
     }, []);
 
     return (
@@ -49,7 +69,11 @@ const Comment: React.FC<IComment> = ({ comment, setComments, isMyPost }) => {
                 className={s.avatar}
                 style={{ backgroundImage: `url(${commentAvatar})` }}
                 onClick={openPageByAvatar}
-            ></div>
+            >
+                {(isOnline) && (
+                    <GrStatusGoodSmall className={s.online} />
+                )}
+            </div>
             <div className={s.fio_content_date_time}>
                 <div>
                     <span className={s.fio}>

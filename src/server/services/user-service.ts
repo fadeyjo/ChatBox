@@ -105,6 +105,31 @@ class UserService {
         ).rows;
         return users.map((user) => new UserDto(user));
     }
+
+    async setStatus(isOnline: boolean, userId: number) {
+        if (!(await this.userIsExistsById(userId))) {
+            throw ApiError.BadRequest("User isn't found");
+        }
+        const userData: IUserFromDataBase = (
+            await db.query(
+                "UPDATE users SET is_online = $1 WHERE user_id = $2 RETURNING *",
+                [isOnline, userId]
+            )
+        ).rows[0];
+        return new UserDto(userData);
+    }
+
+    async getStatus(userId: number) {
+        if (!(await this.userIsExistsById(userId))) {
+            throw ApiError.BadRequest("User isn't found");
+        }
+        const { is_online }: { is_online: boolean | null } = (
+            await db.query("SELECT is_online FROM users WHERE user_id = $1", [
+                userId,
+            ])
+        ).rows[0];
+        return { isOnline: is_online };
+    }
 }
 
 export default new UserService();

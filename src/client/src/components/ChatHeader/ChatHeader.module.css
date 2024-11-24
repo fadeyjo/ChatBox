@@ -1,0 +1,48 @@
+.header {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    height: 70px;
+    align-items: center;
+    background-color: #f3f3f3;
+}
+
+.image {
+    height: 80%;
+    aspect-ratio: 1;
+    border-radius: 30px;
+    background-position: center 20%;
+    background-repeat: no-repeat;
+    border-radius: 80px;
+    background-size: cover;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.image:hover {
+    cursor: pointer;
+}
+
+.online {
+    position: absolute;
+    font-size: 15px;
+    right: 5px;
+    bottom: 5px;
+    color: var(--header-bg-color);
+}
+
+.fio {
+    font-size: 25px;
+}
+
+.fio:hover {
+    cursor: pointer;
+}
+
+.back {
+    font-size: 25px;
+}
+
+.back:hover {
+    cursor: pointer;
+}

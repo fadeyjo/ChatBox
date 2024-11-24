@@ -12,6 +12,7 @@ import { observer } from "mobx-react-lite";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { globalSocket } from "../../globalSocket";
+import { GrStatusGoodSmall } from "react-icons/gr";
 
 const ChatCard: React.FC<{ userId: number; chatId: number }> = ({
     userId,
@@ -22,6 +23,7 @@ const ChatCard: React.FC<{ userId: number; chatId: number }> = ({
     const [user, setUser] = useState({} as IUser);
     const [image, setImage] = useState("");
     const [messages, setMessages] = useState<IGetMessage[]>([]);
+    const [isOnline, setIsOnline] = useState(false);
 
     const navigate = useNavigate();
 
@@ -65,10 +67,15 @@ const ChatCard: React.FC<{ userId: number; chatId: number }> = ({
         });
     };
 
+    const loadIsOnline = async () => {
+        setIsOnline((await UserService.getStatus(userId)).data.isOnline);
+    };
+
     useEffect(() => {
         loadUser();
         loadAvatar();
         loadMessages();
+        loadIsOnline();
         const newSocket = io(globalSocket);
         newSocket.emit("subscribe_messages", {
             chatId: Number(chatId),
@@ -77,12 +84,17 @@ const ChatCard: React.FC<{ userId: number; chatId: number }> = ({
         newSocket.emit("subscribe_image", {
             userId,
         });
+        newSocket.emit("subscribe_online", { userId });
+        newSocket.on("set_status", ({ isOnline }: { isOnline: boolean }) => {
+            setIsOnline(isOnline);
+        });
         newSocket.on("add_message", ({ message }: { message: IGetMessage }) => {
             setMessages((prev) => [message, ...prev]);
         });
         newSocket.on("filter_messages", deleteMessage);
         newSocket.on("set_image", () => loadAvatar());
         return () => {
+            newSocket.off("set_status");
             newSocket.off("set_image");
             newSocket.off("add_message");
             newSocket.off("filter_messages");
@@ -103,7 +115,9 @@ const ChatCard: React.FC<{ userId: number; chatId: number }> = ({
             <div
                 className={s.avatar}
                 style={{ backgroundImage: `url(${image})` }}
-            ></div>
+            >
+                {isOnline && <GrStatusGoodSmall className={s.online} />}
+            </div>
             <div className={s.fio}>
                 <div className={s.fio_content}>
                     {[user.lastName, user.firstName, user.patronymic].join(" ")}

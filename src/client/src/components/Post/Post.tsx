@@ -25,6 +25,7 @@ import ImageSlider from "../ImageSlider/ImageSlider";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { globalSocket } from "../../globalSocket";
+import { GrStatusGoodSmall } from "react-icons/gr";
 
 const Post: React.FC<IPost> = ({
     post,
@@ -46,6 +47,7 @@ const Post: React.FC<IPost> = ({
     const [isReaction, setIsReaction] = useState(false);
     const [reactionsAmount, setReactionsAmount] = useState(0);
     const [repostsAmount, setRepostsAmount] = useState(0);
+    const [isOnline, setIsOnline] = useState(false)
 
     const navigate = useNavigate();
 
@@ -113,6 +115,10 @@ const Post: React.FC<IPost> = ({
         );
     };
 
+    const loadIsOnline = async () => {
+        setIsOnline((await UserService.getStatus(post.postAuthorId)).data.isOnline)
+    }
+
     useEffect(() => {
         loadAuthor();
         loadPostImages();
@@ -120,6 +126,7 @@ const Post: React.FC<IPost> = ({
         loadPostAvatarImage();
         laodReactions();
         loadReposts();
+        loadIsOnline()
         if (!isChild) {
             loadComments();
         }
@@ -131,6 +138,7 @@ const Post: React.FC<IPost> = ({
             postId: post.postId,
             authorId: store.user.userId,
         });
+        socket.emit("subscribe_online", {userId: post.postAuthorId });
         socket.on("set_image", () => {
             loadPostAvatarImage();
         });
@@ -138,7 +146,11 @@ const Post: React.FC<IPost> = ({
             console.log(operation)
             setReactionsAmount((prev) => prev + operation);
         });
+        socket.on("set_status", ({ isOnline }: { isOnline: boolean }) => {
+            setIsOnline(isOnline);
+        });
         return () => {
+            socket.off("set_status");
             socket.off("set_like");
             socket.off("set_image");
             socket.disconnect();
@@ -154,7 +166,10 @@ const Post: React.FC<IPost> = ({
                     style={{
                         backgroundImage: `url(${postAvatarImage})`,
                     }}
-                ></div>
+                >
+                {isOnline && (
+                    <GrStatusGoodSmall className={s.online} />
+                )}</div>
                 <div className={s.date_time_fio}>
                     <div className={s.post_fio}>
                         {[

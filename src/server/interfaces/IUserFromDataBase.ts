@@ -6,4 +6,5 @@ export default interface IUserFromDataBase {
     email: string;
     nickname: string;
     hashed_password: string;
+    is_online: boolean | null;
 }

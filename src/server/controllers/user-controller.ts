@@ -32,7 +32,10 @@ class UserController {
                 newUserResponse.userId
             );
 
-            const filePath = join(__dirname, "../public/defaultProfileImage.png");
+            const filePath = join(
+                __dirname,
+                "../public/defaultProfileImage.png"
+            );
 
             const fileBuffer = readFileSync(filePath);
 
@@ -139,14 +142,44 @@ class UserController {
             const userData = await tokensService.refresh(refreshToken);
             res.cookie("refreshToken", userData.refreshToken, {
                 httpOnly: true,
-                // secure: true,
-                // sameSite: "none",
                 maxAge:
                     Number(process.env.LIVING_TIME_REFRESH_TOKEN_COOKIE) ||
                     2592000000,
             }).json({
                 ...userData,
             });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async setStatus(req: Request, res: Response, next: NextFunction) {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                throw ApiError.BadRequest("Incorrect format", errors.array());
+            }
+            const userId = Number(res.locals.userData.userId);
+            const { isOnline }: { isOnline: boolean } = req.body;
+            const userData = await userService.setStatus(isOnline, userId);
+            res.json({ ...userData });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getStatus(req: Request, res: Response, next: NextFunction) {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                throw ApiError.BadRequest(
+                    "Incorrect format user id",
+                    errors.array()
+                );
+            }
+            const userId = Number(req.params.userId);
+            const { isOnline } = await userService.getStatus(userId);
+            res.json({ isOnline: Boolean(isOnline) });
         } catch (error) {
             next(error);
         }

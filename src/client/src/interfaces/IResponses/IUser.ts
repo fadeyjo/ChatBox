@@ -6,4 +6,5 @@ export default interface IUser {
     email: string;
     nickname: string;
     hashedPassword: string;
+    isOnline: boolean | null;
 }

@@ -5,7 +5,8 @@ CREATE TABLE users (
     patronymic VARCHAR(50),
     email TEXT NOT NULL UNIQUE,
     nickname VARCHAR(50) NOT NULL UNIQUE,
-    hashed_password VARCHAR(255) NOT NULL
+    hashed_password VARCHAR(255) NOT NULL,
+    is_online BOOLEAN DEFAULT NULL
 );
 
 CREATE TABLE activation_codes (

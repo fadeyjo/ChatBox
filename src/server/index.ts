@@ -50,6 +50,8 @@ let likeSubscribers: {
     [postId: number]: { socketId: string; authorId: number }[];
 } = {};
 
+let onlineSubscribers: { [userId: number]: string[] } = {};
+
 const removeFromMessages = (socketId: string) => {
     for (let chatId in messageSubscribers) {
         messageSubscribers[chatId] = messageSubscribers[chatId].filter(
@@ -94,7 +96,47 @@ const removeFromLike = (socketId: string) => {
     }
 };
 
+const removeFromOnline = (socketId: string) => {
+    for (let userId in onlineSubscribers) {
+        onlineSubscribers[userId] = onlineSubscribers[userId].filter(
+            (socketIdData) => socketIdData !== socketId
+        );
+        if (onlineSubscribers[userId].length === 0) {
+            delete onlineSubscribers[userId];
+        }
+    }
+};
+
 io.on("connection", (socket) => {
+    socket.on("subscribe_online", ({ userId }) => {
+        if (!onlineSubscribers[userId]) onlineSubscribers[userId] = [];
+        const existingSubscriber = onlineSubscribers[userId].find(
+            (el) => el === socket.id
+        );
+        if (!existingSubscriber) onlineSubscribers[userId].push(socket.id);
+        console.log(onlineSubscribers);
+    });
+
+    socket.on("is_online", ({ userId }) => {
+        if (!onlineSubscribers[userId]) return;
+        for (let i = 0; i < onlineSubscribers[userId].length; i++) {
+            io.to(onlineSubscribers[userId][i]).emit("set_status", {
+                isOnline: true,
+            });
+        }
+        console.log("Is online", userId);
+    });
+
+    socket.on("is_offline", ({ userId }) => {
+        if (!onlineSubscribers[userId]) return;
+        for (let i = 0; i < onlineSubscribers[userId].length; i++) {
+            io.to(onlineSubscribers[userId][i]).emit("set_status", {
+                isOnline: false,
+            });
+        }
+        console.log("Is online", userId);
+    });
+
     socket.on("subscribe_like", ({ postId, authorId }) => {
         if (!likeSubscribers[postId]) likeSubscribers[postId] = [];
         const existingSubscriber = likeSubscribers[postId].find(
@@ -198,6 +240,7 @@ io.on("connection", (socket) => {
         removeFromImage(socket.id);
         removeFromPost(socket.id);
         removeFromLike(socket.id);
+        removeFromOnline(socket.id);
     });
 });
 

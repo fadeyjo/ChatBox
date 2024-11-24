@@ -7,10 +7,13 @@ import ILogin from "../interfaces/IRequests/ILogin";
 import CodeService from "../services/code-service";
 import IRefresh from "../interfaces/IResponses/IRefresh";
 import axios from "axios";
+import io from "socket.io-client";
+import { globalSocket } from "../globalSocket";
 
 export default class Store {
     user = {} as IUser;
     isAuth = false;
+    selectedItem = ""
 
     constructor() {
         makeAutoObservable(this);
@@ -116,6 +119,7 @@ export default class Store {
                 email: data.email,
                 nickname: data.nickname,
                 hashedPassword: data.hashedPassword,
+                isOnline: data.isOnline,
             });
             localStorage.setItem("accessToken", data.accessToken);
         } catch (error: any) {
@@ -160,7 +164,12 @@ export default class Store {
                 email: data.userData.email,
                 nickname: data.userData.nickname,
                 hashedPassword: data.userData.hashedPassword,
+                isOnline: data.userData.isOnline,
             });
+            this.selectedItem = "profile"
+            await UserService.setStatus(true);
+            const socket = io(globalSocket);
+            socket.emit("is_online", { userId: this.user.userId });
         } catch (error: any) {
             console.log(error);
         }

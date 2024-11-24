@@ -13,14 +13,31 @@ import { BufSubscribesPage } from "./components/BufSubscribesPage/BufSubscribesP
 import { PostsPage } from "./components/PostsPage/PostsPage";
 import { ChatsPage } from "./components/ChatsPage/ChatsPage";
 import { Chat } from "./components/Chat/Chat";
+import { globalSocket } from "./globalSocket";
+import UserService from "./services/user-service";
+import io from "socket.io-client";
 
 function App() {
     const { store } = useContext(Context);
 
     useEffect(() => {
+        const socket = io(globalSocket);
         if (localStorage.getItem("accessToken")) {
             store.checkAuthorization();
         }
+        const handleAppUnmount = async () => {
+            try {
+                socket.emit("is_offline", { userId: store.user.userId });
+                await UserService.setStatus(false);
+            } catch (error) {
+                console.error("Failed to set offline status:", error);
+            }
+        };
+        window.addEventListener("beforeunload", handleAppUnmount);
+        return () => {
+            window.removeEventListener("beforeunload", handleAppUnmount);
+            socket.disconnect();
+        };
     }, []);
 
     if (store.isAuth) {
@@ -68,14 +85,8 @@ function App() {
                                     path="/subscribes/:userId"
                                     element={<BufSubscribesPage />}
                                 />
-                                <Route
-                                    path="/posts"
-                                    element={<PostsPage />}
-                                />
-                                <Route
-                                    path="/chats"
-                                    element={<ChatsPage />}
-                                />
+                                <Route path="/posts" element={<PostsPage />} />
+                                <Route path="/chats" element={<ChatsPage />} />
                                 <Route
                                     path="/chats/:chatId"
                                     element={<Chat />}

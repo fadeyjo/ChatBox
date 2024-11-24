@@ -24,4 +24,12 @@ export default class UserService {
     static async getAllUsers() {
         return await $api.get<{ users: IUser[] }>("/user/all");
     }
+
+    static async setStatus(isOnline: boolean) {
+        return await $api.put<IUser>("/user", { isOnline });
+    }
+
+    static async getStatus(userId: number) {
+        return await $api.get<{ isOnline: boolean }>(`/user/online/${userId}`);
+    }
 }

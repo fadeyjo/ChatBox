@@ -12,3 +12,7 @@
     border-radius: 10px;
     cursor: pointer;
 }
+
+.selected {
+    background-color: rgba(128, 128, 128, 0.5);
+}

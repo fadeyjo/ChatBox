@@ -94,6 +94,37 @@ class MessageService {
         }
         return true;
     }
+
+    async checkMessage(messageId: number) {
+        if (!(await this.messageIsExistById(messageId)))
+            throw ApiError.BadRequest("Message isn't exists");
+        const messageData: IMessageFromDataBase = (
+            await db.query(
+                "UPDATE messages SET is_checked = $1 WHERE message_id = $2 RETURNING *",
+                [true, messageId]
+            )
+        ).rows[0];
+        messageData.dispatch_date_time = dateTimeService.formatDateTime(
+            messageData.dispatch_date_time
+        );
+        return new MessageDto(messageData);
+    }
+
+    async getUnreadMessages(userId: number) {
+        if (!(await userService.userIsExistsById(userId)))
+            throw ApiError.BadRequest("User isn't found");
+        const chats = await chatService.getChatsByUserId(userId);
+        let unreadMessagesAmount = 0;
+        for (let i = 0; i < chats.length; i++) {
+            unreadMessagesAmount += (
+                await this.getMessagesByChatId(chats[i].chatId)
+            ).filter(
+                (messageData) =>
+                    messageData.senderId !== userId && !messageData.isChecked
+            ).length;
+        }
+        return unreadMessagesAmount;
+    }
 }
 
 export default new MessageService();

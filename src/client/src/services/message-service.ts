@@ -27,4 +27,14 @@ export default class MessageService {
     static async deleteMessageById(messageId: number) {
         return await $api.delete<IGetMessage>(`/message/${messageId}`);
     }
+
+    static async checkMessage(messageId: number) {
+        return await $api.put<IGetMessage>("/message", { messageId });
+    }
+
+    static async getUnreadMessages() {
+        return await $api.get<{ unreadMessagesAmount: number }>(
+            "/message/unread"
+        );
+    }
 }

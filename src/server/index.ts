@@ -27,7 +27,9 @@ const server = createServer(app);
 const io = new Server(server, {
     cors: {
         origin: [
-            process.env.CLIENT_URL || "http://localhost:3000",
+            "http://localhost:3000",
+            "http://192.168.3.68:3000",
+            "http://192.168.11.176:3000",
             "http://localhost:3000",
         ],
         credentials: true,
@@ -249,7 +251,9 @@ app.use(
     cors({
         credentials: true,
         origin: [
-            process.env.CLIENT_URL || "http://localhost:3000",
+            "http://localhost:3000",
+            "http://192.168.3.68:3000",
+            "http://192.168.11.176:3000",
             "http://localhost:3000",
         ],
     })

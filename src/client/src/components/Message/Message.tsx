@@ -1,4 +1,10 @@
-import React, { Dispatch, useContext, useEffect, useState } from "react";
+import React, {
+    Dispatch,
+    forwardRef,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 import s from "./Message.module.css";
 import IGetMessage from "../../interfaces/IResponses/IGetMessage";
 import classNames from "classnames";
@@ -12,18 +18,21 @@ import UserService from "../../services/user-service";
 import { globalSocket } from "../../globalSocket";
 import io from "socket.io-client";
 
-export const Message: React.FC<{
-    message: IGetMessage;
-    isSelf: boolean;
-    setResend?: Dispatch<
-        React.SetStateAction<{
-            content: string;
-            childrenMessageId: number;
-        } | null>
-    >;
-    isChild: boolean;
-    deleteMessage?: ({ messageId }: { messageId: number }) => void;
-}> = ({ message, isSelf, setResend, isChild, deleteMessage }) => {
+const Message = forwardRef<
+    HTMLDivElement,
+    {
+        message: IGetMessage;
+        isSelf: boolean;
+        setResend?: Dispatch<
+            React.SetStateAction<{
+                content: string;
+                childrenMessageId: number;
+            } | null>
+        >;
+        isChild: boolean;
+        deleteMessage?: ({ messageId }: { messageId: number }) => void;
+    }
+>(({ message, isSelf, setResend, isChild, deleteMessage }, ref) => {
     const { store } = useContext(Context);
 
     const [childMessage, setChildMessage] = useState<JSX.Element | null>(null);
@@ -52,10 +61,13 @@ export const Message: React.FC<{
 
     return (
         <div
+            ref={ref}
+            data-message-id={message.messageId}
             className={classNames(s.message, {
                 [s.left]: !isSelf && !isChild,
                 [s.right]: isSelf && !isChild,
                 [s.child_message_back]: isChild,
+                [s.unread]: !isChild && message.senderId === store.user.userId && !message.isChecked,
             })}
         >
             {!isChild && (
@@ -110,4 +122,7 @@ export const Message: React.FC<{
             )}
         </div>
     );
-};
+});
+
+Message.displayName = "Message";
+export default Message;

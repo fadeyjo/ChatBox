@@ -37,7 +37,6 @@ const Post: React.FC<IPost> = ({
     const { store } = useContext(Context);
 
     const [postAvatarImage, setPostAvatarImage] = useState("");
-    const [socket, setSocket] = useState<any>(null);
     const [author, setAuthor] = useState({} as IUser);
     const [postImages, setPostImages] = useState<string[]>([]);
     const [comments, setComments] = useState<IGetComment[]>([]);

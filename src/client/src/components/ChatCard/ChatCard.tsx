@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { Dispatch, useContext, useEffect, useState } from "react";
 import s from "./ChatCard.module.css";
 import IGetChat from "../../interfaces/IResponses/IGetChat";
 import IUser from "../../interfaces/IResponses/IUser";
@@ -13,17 +13,21 @@ import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { globalSocket } from "../../globalSocket";
 import { GrStatusGoodSmall } from "react-icons/gr";
+import { TbPointFilled } from "react-icons/tb";
+import classNames from "classnames";
 
-const ChatCard: React.FC<{ userId: number; chatId: number }> = ({
-    userId,
-    chatId,
-}) => {
+const ChatCard: React.FC<{
+    userId: number;
+    chatId: number;
+    setChats: Dispatch<React.SetStateAction<IGetChat[]>>;
+}> = ({ userId, chatId, setChats }) => {
     const { store } = useContext(Context);
 
     const [user, setUser] = useState({} as IUser);
     const [image, setImage] = useState("");
     const [messages, setMessages] = useState<IGetMessage[]>([]);
     const [isOnline, setIsOnline] = useState(false);
+    const [unreadAmount, setUnreadAmount] = useState(0);
 
     const navigate = useNavigate();
 
@@ -36,15 +40,21 @@ const ChatCard: React.FC<{ userId: number; chatId: number }> = ({
     };
 
     const loadMessages = async () => {
-        setMessages(
-            (
-                await MessageService.getMessagesByChatId(chatId)
-            ).data.messages.sort((first, second) => {
-                const dateFirst = new Date(first.dispatchDateTime);
-                const dateSecond = new Date(second.dispatchDateTime);
-                return dateSecond.getTime() - dateFirst.getTime();
-            })
+        const messagesData = (
+            await MessageService.getMessagesByChatId(chatId)
+        ).data.messages.sort((first, second) => {
+            const dateFirst = new Date(first.dispatchDateTime);
+            const dateSecond = new Date(second.dispatchDateTime);
+            return dateSecond.getTime() - dateFirst.getTime();
+        });
+        setUnreadAmount(
+            messagesData.filter(
+                (messageData) =>
+                    messageData.senderId !== store.user.userId &&
+                    !messageData.isChecked
+            ).length
         );
+        setMessages(messagesData);
     };
 
     const deleteMessage = ({ messageId }: { messageId: number }) => {
@@ -89,6 +99,24 @@ const ChatCard: React.FC<{ userId: number; chatId: number }> = ({
             setIsOnline(isOnline);
         });
         newSocket.on("add_message", ({ message }: { message: IGetMessage }) => {
+            if (message.senderId !== store.user.userId) {
+                setChats((prev) => {
+                    let chatData: IGetChat | null = null;
+                    for (let i = 0; i < prev.length; i++) {
+                        if (message.chatId !== prev[i].chatId) continue;
+                        chatData = prev[i];
+                        break;
+                    }
+                    if (!chatData) return prev;
+                    return [
+                        chatData,
+                        ...prev.filter(
+                            (chatFilter) => chatFilter.chatId !== message.chatId
+                        ),
+                    ];
+                });
+                setUnreadAmount((prev) => prev + 1);
+            }
             setMessages((prev) => [message, ...prev]);
         });
         newSocket.on("filter_messages", deleteMessage);
@@ -106,9 +134,10 @@ const ChatCard: React.FC<{ userId: number; chatId: number }> = ({
 
     return (
         <div
-            className={s.container}
+            className={classNames(s.container, {
+                [s.unself_unread]: unreadAmount !== 0,
+            })}
             onClick={() => {
-                console.log(chatId);
                 navigate(`/chats/${chatId}`);
             }}
         >
@@ -123,20 +152,23 @@ const ChatCard: React.FC<{ userId: number; chatId: number }> = ({
                     {[user.lastName, user.firstName, user.patronymic].join(" ")}
                 </div>
                 <div className={s.content}>
-                    {messages.length !== 0
-                        ? `${
-                              messages[0].senderId === store.user.userId
-                                  ? "You: "
-                                  : "Companion: "
-                          }` + messages[0].content
-                        : null}
+                    {`${
+                        messages[0].senderId === store.user.userId
+                            ? "You: "
+                            : "Companion: "
+                    }` + messages[0].content}
                 </div>
             </div>
             <div className={s.time}>
-                {messages.length !== 0
-                    ? DateTimeService.formDate(messages[0].dispatchDateTime)
-                    : null}
+                {DateTimeService.formDate(messages[0].dispatchDateTime)}
             </div>
+            {messages[0].senderId === store.user.userId &&
+                !messages[0].isChecked && (
+                    <TbPointFilled className={s.self_unread} />
+                )}
+            {unreadAmount !== 0 && (
+                <div className={s.self_unread}>{unreadAmount}</div>
+            )}
         </div>
     );
 };

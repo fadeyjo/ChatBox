@@ -71,6 +71,32 @@ class MessageController {
             next(error);
         }
     }
+
+    async checkMessage(req: Request, res: Response, next: NextFunction) {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty())
+                throw ApiError.BadRequest(
+                    "Incorrect message id",
+                    errors.array()
+                );
+            const messageId = Number(req.body.messageId);
+            const message = await messageService.checkMessage(messageId);
+            res.json({ ...message });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getUnreadMessages(req: Request, res: Response, next: NextFunction) {
+        try {
+            const userId = Number(res.locals.userData.userId);
+            const unreadMessagesAmount = await messageService.getUnreadMessages(userId);
+            res.json({ unreadMessagesAmount });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 export default new MessageController();

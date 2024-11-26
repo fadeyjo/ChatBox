@@ -13,7 +13,7 @@
 .container {
     display: flex;
     margin-top: 20px;
-    background-color: #e8e8e8;
+    background-color: #eeeeee;
     padding: 30px 50px;
     border-radius: 60px;
     width: 100%;
@@ -60,4 +60,17 @@
     right: 5px;
     bottom: 5px;
     color: var(--header-bg-color);
+}
+
+.self_unread {
+    align-self: center;
+    position: absolute;
+    right: 25px;
+    font-size: 30px;
+    color: #4444ff;
+    font-weight: 600;
+}
+
+.unself_unread {
+    background-color: #cacaca;
 }

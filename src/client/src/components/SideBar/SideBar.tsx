@@ -8,9 +8,18 @@ import { LiaUserFriendsSolid } from "react-icons/lia";
 import { BsFillPeopleFill } from "react-icons/bs";
 import { BsPeople } from "react-icons/bs";
 import { useNavigate } from "react-router-dom";
+import MessageService from "../../services/message-service";
 
 export const SideBar: React.FC = () => {
     const navigate = useNavigate();
+
+    const [amount, setAmount] = useState(0);
+
+    useEffect(() => {
+        MessageService.getUnreadMessages()
+            .then((response) => response.data)
+            .then((data) => setAmount(data.unreadMessagesAmount));
+    }, []);
 
     return (
         <nav className={s.nav_bar}>
@@ -33,7 +42,7 @@ export const SideBar: React.FC = () => {
                     navigate("/chats");
                 }}
             >
-                <LuMessageSquare /> Chats
+                <LuMessageSquare /> {`Chats ${amount}`}
             </SideBarElement>
             <SideBarElement
                 onClick={() => {

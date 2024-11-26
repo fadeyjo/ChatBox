@@ -56,7 +56,8 @@
 
 .message.right {
     align-self: flex-end;
-    background-color: #d1e7dd;
+    /* background-color: #d1e7dd; */
+    background-color: #c0d6cc;
     border-top-right-radius: 0;
 }
 
@@ -73,4 +74,8 @@
 
 .reseond_header {
     opacity: 0.5;
+}
+
+.unread {
+    opacity: 0.6;
 }

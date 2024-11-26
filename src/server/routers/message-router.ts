@@ -12,6 +12,7 @@ messageRouter.post(
     authMiddleware,
     messageController.newMessage
 );
+messageRouter.get("/unread", authMiddleware, messageController.getUnreadMessages)
 messageRouter.get(
     "/redirect/:messageId",
     param("messageId").isNumeric(),
@@ -30,6 +31,12 @@ messageRouter.delete(
     param("messageId").isNumeric(),
     authMiddleware,
     messageController.deleteMessageById
+);
+messageRouter.put(
+    "/",
+    body("messageId"),
+    authMiddleware,
+    messageController.checkMessage
 );
 
 export default messageRouter;

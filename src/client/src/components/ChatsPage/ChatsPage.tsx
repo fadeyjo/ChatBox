@@ -29,6 +29,7 @@ export const ChatsPage: React.FC = () => {
                     }
                     chatId={chat.chatId}
                     key={chat.chatId}
+                    setChats={setChats}
                 />
             ))}
         </div>

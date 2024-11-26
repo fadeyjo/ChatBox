@@ -3,7 +3,7 @@ import s from "./Chat.module.css";
 import { useParams } from "react-router-dom";
 import IGetMessage from "../../interfaces/IResponses/IGetMessage";
 import MessageService from "../../services/message-service";
-import { Message } from "../Message/Message";
+import Message from "../Message/Message";
 import { Context } from "../..";
 import IUser from "../../interfaces/IResponses/IUser";
 import ChatService from "../../services/chat-service";
@@ -21,20 +21,47 @@ export const Chat: React.FC = () => {
 
     const { store } = useContext(Context);
 
-    const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
+    const messageRefs = useRef<(HTMLDivElement | null)[]>([]);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
 
+    const [isAtBottom, setIsAtBottom] = useState(true);
     const [messages, setMessages] = useState<IGetMessage[]>([]);
     const [user, setUser] = useState({} as IUser);
     const [image, setImage] = useState("");
     const [chat, setChat] = useState({} as IGetChat);
     const [input, setInput] = useState("");
-    const [inDown, setInDown] = useState(true);
     const [resend, setResend] = useState<{
         content: string;
         childrenMessageId: number;
     } | null>(null);
     const [isOnline, setIsOnline] = useState(false);
+
+    const setUnreadPosition = () => {
+        if (messagesContainerRef.current) {
+            const firstUnreadMessage = messages.find(
+                (message) => !message.isChecked
+            );
+
+            if (firstUnreadMessage) {
+                const firstUnreadMessageElement = document.querySelector(
+                    `[data-message-id="${firstUnreadMessage.messageId}"]`
+                );
+
+                if (firstUnreadMessageElement) {
+                    messagesContainerRef.current.scrollTop =
+                        firstUnreadMessageElement.getBoundingClientRect().top -
+                        messagesContainerRef.current.getBoundingClientRect()
+                            .top +
+                        messagesContainerRef.current.scrollTop;
+                }
+            } else {
+                // Если непрочитанных сообщений нет, скроллим в самый низ
+                messagesContainerRef.current.scrollTop =
+                    messagesContainerRef.current.scrollHeight;
+            }
+        }
+    };
 
     const sendMessage = () => {
         if (input === "" || !chatId) return;
@@ -63,6 +90,12 @@ export const Chat: React.FC = () => {
                     },
                 });
             });
+        if (messagesContainerRef.current) {
+            setTimeout(() => {
+                messagesContainerRef.current!.scrollTop =
+                    messagesContainerRef.current!.scrollHeight;
+            }, 0);
+        }
     };
 
     const loadMessages = async () => {
@@ -111,6 +144,48 @@ export const Chat: React.FC = () => {
         });
     };
 
+    const messageIsSelf = (messageId: number) => {
+        for (let i = 0; i < messages.length; i++) {
+            if (messages[i].messageId !== messageId) continue;
+            if (messages[i].senderId === store.user.userId) return true;
+            return false;
+        }
+    };
+
+    const observeMessages = () => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        const messageId =
+                            entry.target.getAttribute("data-message-id");
+                        if (messageId && !messageIsSelf(Number(messageId))) {
+                            MessageService.checkMessage(Number(messageId));
+                        }
+                    }
+                });
+            },
+            {
+                threshold: 1.0,
+            }
+        );
+        messageRefs.current.forEach((messageEl) => {
+            if (messageEl) {
+                observer.observe(messageEl);
+            }
+        });
+    };
+
+    const handleScroll = () => {
+        const container = messagesContainerRef.current;
+        if (container) {
+            const isAtBottom =
+                container.scrollHeight - container.scrollTop ===
+                container.clientHeight;
+            setIsAtBottom(isAtBottom);
+        }
+    };
+
     useEffect(() => {
         if (inputRef.current) {
             inputRef.current.focus();
@@ -139,6 +214,10 @@ export const Chat: React.FC = () => {
         });
         newSocket.on("add_message", ({ message }: { message: IGetMessage }) => {
             setMessages((prev) => [...prev, message]);
+            if (isAtBottom && messagesContainerRef.current) {
+                messagesContainerRef.current.scrollTop =
+                    messagesContainerRef.current.scrollHeight;
+            }
         });
         newSocket.on("filter_messages", deleteMessage);
         newSocket.on("set_image", () => loadChat());
@@ -152,33 +231,19 @@ export const Chat: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        if (!inDown) return;
-        const messagesContainer = messagesEndRef.current;
-
-        if (messagesContainer) {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
+        setUnreadPosition();
+        if (messages.length !== 0) observeMessages();
     }, [messages]);
 
     return (
         <div className={s.chat_container}>
             <ChatHeader user={user} image={image} isOnline={isOnline} />
             <div
-                ref={messagesEndRef}
                 className={s.messages}
-                onScroll={(event) => {
-                    const container = event.target as HTMLDivElement;
-                    const scrollTop = container.scrollTop;
-                    const scrollHeight = container.scrollHeight;
-                    const clientHeight = container.clientHeight;
-                    if (scrollTop + clientHeight >= scrollHeight) {
-                        setInDown(true);
-                        return;
-                    }
-                    setInDown(false);
-                }}
+                ref={messagesContainerRef}
+                onScroll={handleScroll}
             >
-                {messages.map((message) => (
+                {messages.map((message, index) => (
                     <Message
                         key={message.messageId}
                         message={message}
@@ -186,6 +251,7 @@ export const Chat: React.FC = () => {
                         setResend={setResend}
                         isChild={false}
                         deleteMessage={deleteMessage}
+                        ref={(el) => (messageRefs.current[index] = el)}
                     />
                 ))}
             </div>

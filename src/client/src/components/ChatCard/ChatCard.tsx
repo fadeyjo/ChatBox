@@ -9,7 +9,7 @@ import MessageService from "../../services/message-service";
 import DateTimeService from "../../services/dateTime-service";
 import { Context } from "../..";
 import { observer } from "mobx-react-lite";
-import { useNavigate } from "react-router-dom";
+import { useAsyncError, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { globalSocket } from "../../globalSocket";
 import { GrStatusGoodSmall } from "react-icons/gr";
@@ -129,6 +129,32 @@ const ChatCard: React.FC<{
             newSocket.disconnect();
         };
     }, []);
+
+    useEffect(() => {
+        if (
+            messages.length !== 0 &&
+            messages[0].senderId === store.user.userId &&
+            !messages[0].isChecked
+        ) {
+            const socket = io(globalSocket);
+            socket.emit("subscribe_chat_read", { chatId });
+            socket.on("set_undread_message_count", () => {
+                console.log("daaaaaaaaaaaaaaaaaaa")
+                setMessages((prev) =>
+                    prev.map((messageData, index) => {
+                        if (index !== 0) return messageData;
+                        messageData.isChecked = true;
+                        return messageData;
+                    })
+                );
+                messages[0].isChecked = true;
+            });
+            return () => {
+                socket.off("set_undread_message_count");
+                socket.disconnect();
+            };
+        }
+    }, [messages]);
 
     if (messages.length === 0) return null;
 

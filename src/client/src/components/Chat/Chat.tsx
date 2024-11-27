@@ -36,14 +36,16 @@ export const Chat: React.FC = () => {
         childrenMessageId: number;
     } | null>(null);
     const [isOnline, setIsOnline] = useState(false);
+    const [isLoading, setIsloading] = useState(true);
 
     const setUnreadPosition = () => {
         if (messagesContainerRef.current) {
             const firstUnreadMessage = messages.find(
-                (message) => !message.isChecked
+                (message) =>
+                    !message.isChecked && message.senderId !== store.user.userId
             );
 
-            if (firstUnreadMessage) {
+            if (firstUnreadMessage && isLoading) {
                 const firstUnreadMessageElement = document.querySelector(
                     `[data-message-id="${firstUnreadMessage.messageId}"]`
                 );
@@ -56,11 +58,23 @@ export const Chat: React.FC = () => {
                         messagesContainerRef.current.scrollTop;
                 }
             } else {
-                // Если непрочитанных сообщений нет, скроллим в самый низ
                 messagesContainerRef.current.scrollTop =
                     messagesContainerRef.current.scrollHeight;
             }
         }
+    };
+
+    const loadMessages = async () => {
+        const loadedMessages = (
+            await MessageService.getMessagesByChatId(Number(chatId))
+        ).data.messages.sort((first, second) => {
+            const dateFirst = new Date(first.dispatchDateTime);
+            const dateSecond = new Date(second.dispatchDateTime);
+            return dateFirst.getTime() - dateSecond.getTime();
+        });
+
+        setMessages(loadedMessages);
+        setUnreadPosition();
     };
 
     const sendMessage = () => {
@@ -96,18 +110,6 @@ export const Chat: React.FC = () => {
                     messagesContainerRef.current!.scrollHeight;
             }, 0);
         }
-    };
-
-    const loadMessages = async () => {
-        setMessages(
-            (
-                await MessageService.getMessagesByChatId(Number(chatId))
-            ).data.messages.sort((first, second) => {
-                const dateFirst = new Date(first.dispatchDateTime);
-                const dateSecond = new Date(second.dispatchDateTime);
-                return dateFirst.getTime() - dateSecond.getTime();
-            })
-        );
     };
 
     const loadChat = async () => {
@@ -157,10 +159,38 @@ export const Chat: React.FC = () => {
             (entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
-                        const messageId =
-                            entry.target.getAttribute("data-message-id");
-                        if (messageId && !messageIsSelf(Number(messageId))) {
-                            MessageService.checkMessage(Number(messageId));
+                        const messageId = Number(
+                            entry.target.getAttribute("data-message-id")
+                        );
+                        const messageData = messages.find(
+                            (msg) => msg.messageId === messageId
+                        );
+                        if (
+                            messageId &&
+                            messageData &&
+                            !messageIsSelf(messageId) &&
+                            !messageData.isChecked
+                        ) {
+                            MessageService.checkMessage(messageId);
+                            setMessages((prev) =>
+                                prev.map((msgData) => {
+                                    if (msgData.messageId !== messageId)
+                                        return msgData;
+                                    msgData.isChecked = true;
+                                    return msgData;
+                                })
+                            );
+                            const socket = io(globalSocket);
+                            socket.emit("reading_message", { messageId });
+                            if (
+                                messageId ===
+                                messages[messages.length - 1].messageId
+                            ) {
+                                const socket = io(globalSocket);
+                                socket.emit("add_unread_message_count", {
+                                    chatId: Number(chatId),
+                                });
+                            }
                         }
                     }
                 });
@@ -214,10 +244,6 @@ export const Chat: React.FC = () => {
         });
         newSocket.on("add_message", ({ message }: { message: IGetMessage }) => {
             setMessages((prev) => [...prev, message]);
-            if (isAtBottom && messagesContainerRef.current) {
-                messagesContainerRef.current.scrollTop =
-                    messagesContainerRef.current.scrollHeight;
-            }
         });
         newSocket.on("filter_messages", deleteMessage);
         newSocket.on("set_image", () => loadChat());
@@ -231,8 +257,12 @@ export const Chat: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        setUnreadPosition();
-        if (messages.length !== 0) observeMessages();
+        if (messages.length > 0 && isLoading) {
+            observeMessages();
+            setUnreadPosition();
+            setIsloading(false);
+        }
+        if (messages.length > 0) observeMessages();
     }, [messages]);
 
     return (
@@ -252,6 +282,7 @@ export const Chat: React.FC = () => {
                         isChild={false}
                         deleteMessage={deleteMessage}
                         ref={(el) => (messageRefs.current[index] = el)}
+                        setMessages={setMessages}
                     />
                 ))}
             </div>

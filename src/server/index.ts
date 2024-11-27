@@ -51,8 +51,15 @@ let postSubscribers: {
 let likeSubscribers: {
     [postId: number]: { socketId: string; authorId: number }[];
 } = {};
-
 let onlineSubscribers: { [userId: number]: string[] } = {};
+
+let chatReadSubscribers: {
+    [chatId: number]: string;
+} = {};
+
+let messageReadSubscribers: {
+    [messageId: number]: string;
+} = {};
 
 const removeFromMessages = (socketId: string) => {
     for (let chatId in messageSubscribers) {
@@ -109,14 +116,51 @@ const removeFromOnline = (socketId: string) => {
     }
 };
 
+const removeFromChatRead = (socketId: string) => {
+    for (let chatId in chatReadSubscribers) {
+        if (chatReadSubscribers[chatId] === socketId) {
+            delete chatReadSubscribers[chatId];
+            return;
+        }
+    }
+};
+
+const removeFromMessageRead = (socketId: string) => {
+    for (let messageId in messageReadSubscribers) {
+        if (messageReadSubscribers[messageId] === socketId) {
+            delete messageReadSubscribers[messageId];
+            return;
+        }
+    }
+};
+
 io.on("connection", (socket) => {
+    socket.on("subscribe_message_read", ({ messageId }) => {
+        if (messageReadSubscribers[messageId]) return;
+        messageReadSubscribers[messageId] = socket.id;
+    });
+
+    socket.on("reading_message", ({ messageId }) => {
+        if (!messageReadSubscribers[messageId]) return;
+        io.to(messageReadSubscribers[messageId]).emit("read_message");
+    });
+
+    socket.on("subscribe_chat_read", ({ chatId }) => {
+        if (chatReadSubscribers[chatId]) return;
+        chatReadSubscribers[chatId] = socket.id;
+    });
+
+    socket.on("add_unread_message_count", ({ chatId }) => {
+        if (!chatReadSubscribers[chatId]) return;
+        io.to(chatReadSubscribers[chatId]).emit("set_undread_message_count");
+    });
+
     socket.on("subscribe_online", ({ userId }) => {
         if (!onlineSubscribers[userId]) onlineSubscribers[userId] = [];
         const existingSubscriber = onlineSubscribers[userId].find(
             (el) => el === socket.id
         );
         if (!existingSubscriber) onlineSubscribers[userId].push(socket.id);
-        console.log(onlineSubscribers);
     });
 
     socket.on("is_online", ({ userId }) => {
@@ -126,7 +170,6 @@ io.on("connection", (socket) => {
                 isOnline: true,
             });
         }
-        console.log("Is online", userId);
     });
 
     socket.on("is_offline", ({ userId }) => {
@@ -136,7 +179,6 @@ io.on("connection", (socket) => {
                 isOnline: false,
             });
         }
-        console.log("Is online", userId);
     });
 
     socket.on("subscribe_like", ({ postId, authorId }) => {
@@ -194,7 +236,6 @@ io.on("connection", (socket) => {
     });
 
     socket.on("change_image", ({ userId }) => {
-        console.log("DASDSA", userId);
         if (!imageSubscribers[userId]) return;
         for (let i = 0; i < imageSubscribers[userId].length; i++) {
             io.to(imageSubscribers[userId][i]).emit("set_image");
@@ -243,6 +284,8 @@ io.on("connection", (socket) => {
         removeFromPost(socket.id);
         removeFromLike(socket.id);
         removeFromOnline(socket.id);
+        removeFromChatRead(socket.id);
+        removeFromMessageRead(socket.id);
     });
 });
 

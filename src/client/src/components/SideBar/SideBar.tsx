@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React from "react";
 import s from "./SideBar.module.css";
 import { SideBarElement } from "../UI/SideBarElement/SideBarElement";
 import { ImProfile } from "react-icons/im";
@@ -12,14 +12,6 @@ import MessageService from "../../services/message-service";
 
 export const SideBar: React.FC = () => {
     const navigate = useNavigate();
-
-    const [amount, setAmount] = useState(0);
-
-    useEffect(() => {
-        MessageService.getUnreadMessages()
-            .then((response) => response.data)
-            .then((data) => setAmount(data.unreadMessagesAmount));
-    }, []);
 
     return (
         <nav className={s.nav_bar}>
@@ -42,7 +34,7 @@ export const SideBar: React.FC = () => {
                     navigate("/chats");
                 }}
             >
-                <LuMessageSquare /> {`Chats ${amount}`}
+                <LuMessageSquare /> Chats
             </SideBarElement>
             <SideBarElement
                 onClick={() => {

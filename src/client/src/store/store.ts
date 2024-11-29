@@ -13,7 +13,6 @@ import { globalSocket } from "../globalSocket";
 export default class Store {
     user = {} as IUser;
     isAuth = false;
-    selectedItem = ""
 
     constructor() {
         makeAutoObservable(this);
@@ -40,19 +39,19 @@ export default class Store {
             setError("");
         } catch (error: any) {
             const errorsData = error.response.data.errors;
-            if (errorsData.length != 0) {
+            if (errorsData.length !== 0) {
                 const path = errorsData[0].path;
-                if (path == "lastName") {
+                if (path === "lastName") {
                     setError("Incorrect last name format");
-                } else if (path == "firstName") {
+                } else if (path === "firstName") {
                     setError("Incorrect first name format");
-                } else if (path == "patronymic") {
+                } else if (path === "patronymic") {
                     setError("Incorrect patronymic format");
-                } else if (path == "email") {
+                } else if (path === "email") {
                     setError("Incorrect email format");
-                } else if (path == "nickname") {
+                } else if (path === "nickname") {
                     setError("Incorrect nickname format");
-                } else if (path == "password") {
+                } else if (path === "password") {
                     setError("Incorrect password format");
                 } else {
                     setError("Incorrect repeat password format");
@@ -76,9 +75,9 @@ export default class Store {
             setError("");
         } catch (error: any) {
             const errorsData = error.response.data.errors;
-            if (errorsData.length != 0) {
+            if (errorsData.length !== 0) {
                 const path = errorsData[0].path;
-                if (path == "email") {
+                if (path === "email") {
                     setError("Incorrect email format");
                 } else {
                     setError("Incorrect password format");
@@ -91,7 +90,7 @@ export default class Store {
 
     async logout() {
         try {
-            const response = await UserService.logout();
+            await UserService.logout();
             localStorage.removeItem("accessToken");
             this.setAuth(false);
             this.setUser({} as IUser);
@@ -132,9 +131,9 @@ export default class Store {
                 refs[0].focus();
             }
 
-            if (error.response.data.errors.length != 0) {
+            if (error.response.data.errors.length !== 0) {
                 const errorData = error.response.data.errors[0].path;
-                if (errorData == "email") {
+                if (errorData === "email") {
                     setError("Incorrect email format");
                 } else {
                     setError("Incorrect code format");
@@ -166,7 +165,6 @@ export default class Store {
                 hashedPassword: data.userData.hashedPassword,
                 isOnline: data.userData.isOnline,
             });
-            this.selectedItem = "profile"
             await UserService.setStatus(true);
             const socket = io(globalSocket);
             socket.emit("is_online", { userId: this.user.userId });

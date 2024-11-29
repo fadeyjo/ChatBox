@@ -1,4 +1,10 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import s from "./Chat.module.css";
 import { useParams } from "react-router-dom";
 import IGetMessage from "../../interfaces/IResponses/IGetMessage";
@@ -25,7 +31,6 @@ export const Chat: React.FC = () => {
     const messageRefs = useRef<(HTMLDivElement | null)[]>([]);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-    const [isAtBottom, setIsAtBottom] = useState(true);
     const [messages, setMessages] = useState<IGetMessage[]>([]);
     const [user, setUser] = useState({} as IUser);
     const [image, setImage] = useState("");
@@ -37,6 +42,7 @@ export const Chat: React.FC = () => {
     } | null>(null);
     const [isOnline, setIsOnline] = useState(false);
     const [isLoading, setIsloading] = useState(true);
+    const [isAtBottom, setIsAtBottom] = useState(false);
 
     const setUnreadPosition = () => {
         if (messagesContainerRef.current) {
@@ -77,7 +83,7 @@ export const Chat: React.FC = () => {
         setUnreadPosition();
     };
 
-    const sendMessage = () => {
+    const sendMessage = useCallback(() => {
         if (input === "" || !chatId) return;
         MessageService.newMessage(
             input,
@@ -110,7 +116,7 @@ export const Chat: React.FC = () => {
                     messagesContainerRef.current!.scrollHeight;
             }, 0);
         }
-    };
+    }, [input, chatId, resend, store.user.userId]);
 
     const loadChat = async () => {
         if (!chatId) return;
@@ -137,9 +143,7 @@ export const Chat: React.FC = () => {
                     }
                 });
             };
-
             collectMessagesToDelete(messageId);
-
             return prev.filter(
                 (message) => !messagesToDelete.has(message.messageId)
             );
@@ -207,13 +211,11 @@ export const Chat: React.FC = () => {
     };
 
     const handleScroll = () => {
-        const container = messagesContainerRef.current;
-        if (container) {
-            const isAtBottom =
-                container.scrollHeight - container.scrollTop ===
-                container.clientHeight;
-            setIsAtBottom(isAtBottom);
-        }
+        if (!messagesContainerRef.current) return;
+
+        const { scrollTop, scrollHeight, clientHeight } =
+            messagesContainerRef.current;
+        setIsAtBottom(scrollHeight - scrollTop === clientHeight);
     };
 
     useEffect(() => {
@@ -258,10 +260,14 @@ export const Chat: React.FC = () => {
 
     useEffect(() => {
         if (messages.length > 0 && isLoading) {
-            observeMessages();
             setUnreadPosition();
             setIsloading(false);
         }
+        observeMessages();
+        if (isAtBottom && messagesContainerRef.current)
+            messagesContainerRef.current.scrollTop =
+                messagesContainerRef.current.scrollHeight;
+
         if (messages.length > 0) observeMessages();
     }, [messages]);
 

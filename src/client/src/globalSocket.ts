@@ -1,1 +1,1 @@
-export const globalSocket = "http://192.168.3.68:8080";
+export const globalSocket = "http://192.168.136.176:8080";

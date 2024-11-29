@@ -16,9 +16,11 @@ import { Chat } from "./components/Chat/Chat";
 import { globalSocket } from "./globalSocket";
 import UserService from "./services/user-service";
 import io from "socket.io-client";
+import { Notification } from "./components/Notification/Notification";
 
 function App() {
     const { store } = useContext(Context);
+    
 
     useEffect(() => {
         const socket = io(globalSocket);
@@ -95,6 +97,7 @@ function App() {
                         </div>
                     </div>
                 </div>
+                <Notification />
             </BrowserRouter>
         );
     }

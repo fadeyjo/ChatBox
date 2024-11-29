@@ -17,7 +17,6 @@ import profileImageRouter from "./routers/profileImage-router";
 import postImageRouter from "./routers/postImage-router";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import postService from "./services/post-service";
 import chatRouter from "./routers/chat-router";
 
 config();
@@ -30,7 +29,7 @@ const io = new Server(server, {
             "http://localhost:3000",
             "http://192.168.3.68:3000",
             "http://192.168.11.176:3000",
-            "http://localhost:3000",
+            "http://192.168.136.176:3000",
         ],
         credentials: true,
     },
@@ -245,7 +244,7 @@ io.on("connection", (socket) => {
     socket.on("subscribe_messages", ({ chatId, userId }) => {
         if (!messageSubscribers[chatId]) messageSubscribers[chatId] = [];
         const existingSubscriber = messageSubscribers[chatId].find(
-            (subscriber) => subscriber.subscriberId === userId
+            (subscriber) => subscriber.socketId === socket.id
         );
         if (!existingSubscriber)
             messageSubscribers[chatId].push({
@@ -297,7 +296,7 @@ app.use(
             "http://localhost:3000",
             "http://192.168.3.68:3000",
             "http://192.168.11.176:3000",
-            "http://localhost:3000",
+            "http://192.168.136.176:3000",
         ],
     })
 );

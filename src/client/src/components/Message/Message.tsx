@@ -1,6 +1,7 @@
 import React, {
     Dispatch,
     forwardRef,
+    memo,
     useContext,
     useEffect,
     useState,
@@ -159,4 +160,4 @@ const Message = forwardRef<
 );
 
 Message.displayName = "Message";
-export default Message;
+export default memo(Message);

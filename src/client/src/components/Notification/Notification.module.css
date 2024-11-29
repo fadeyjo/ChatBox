@@ -7,7 +7,6 @@
     padding: 10px 20px;
     border-radius: 5px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.5s, transform 0.5s;
     border-radius: 20px;
@@ -16,6 +15,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    transition: all 1s ease-in-out;
 }
 
 .notification_container {
@@ -27,13 +27,12 @@
 }
 
 .notification.show {
-    opacity: 1;
     transform: translateY(0);
 }
 
 .notification.hide {
-    opacity: 0;
     transform: translateY(20px);
+    display: none;
 }
 
 .image {

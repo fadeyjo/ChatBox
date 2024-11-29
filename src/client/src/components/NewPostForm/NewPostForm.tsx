@@ -18,19 +18,26 @@ export const NewPostForm: React.FC<INewPostForm> = ({
     const [content, setContent] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState<File[]>([]);
+    const [filesImages, setFilesImages] = useState<string[]>([]);
 
     const setImages = (event: ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files;
-        if (!files || files.length === 0) {
+        const filesEvent = event.target.files;
+        if (!filesEvent || filesEvent.length === 0) {
             return;
         }
         const permittedTypes = ["image/jpeg", "image/jpg", "image/png"];
-        for (let i = 0; i < files.length; i++) {
-            if (!permittedTypes.includes(files[i].type)) {
+        for (let i = 0; i < filesEvent.length; i++) {
+            if (!permittedTypes.includes(filesEvent[i].type)) {
                 return;
             }
         }
-        setFiles(Array.from(files));
+        const filesArray = Array.from(filesEvent);
+        setFiles(filesArray);
+        setFilesImages(
+            filesArray.map(
+                (fileData) => `url(${URL.createObjectURL(fileData)})`
+            )
+        );
     };
 
     return (
@@ -48,13 +55,11 @@ export const NewPostForm: React.FC<INewPostForm> = ({
                         className={s.clip}
                         onClick={() => fileInputRef.current?.click()}
                     />
-                    {files.map((file) => (
+                    {filesImages.map((file) => (
                         <div
                             className={s.image}
                             style={{
-                                backgroundImage: `url(${URL.createObjectURL(
-                                    file
-                                )})`,
+                                backgroundImage: file,
                             }}
                         ></div>
                     ))}
@@ -85,6 +90,7 @@ export const NewPostForm: React.FC<INewPostForm> = ({
                               setRepost(null);
                               setContent("");
                               setFiles([]);
+                              setFilesImages([]);
                               setCreatePostFormIsOpened(false);
                               if (isFromPostsPage)
                                   setPosts((prev) => [post, ...prev]);
@@ -100,6 +106,7 @@ export const NewPostForm: React.FC<INewPostForm> = ({
                               );
                               setContent("");
                               setFiles([]);
+                              setFilesImages([]);
                               setCreatePostFormIsOpened(false);
                               setPosts((prev) => [post, ...prev]);
                               const socket = io(globalSocket);

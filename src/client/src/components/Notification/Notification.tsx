@@ -85,7 +85,7 @@ export const Notification: React.FC = observer(() => {
                 [s.hide]: !show,
             })}
             onClick={() => {
-                navigate(`/chats/${message?.chatId}`);
+                if (message) navigate(`/chats/${message.chatId}`);
                 handleClose();
             }}
         >

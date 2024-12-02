@@ -1,7 +1,7 @@
 import axios from "axios";
 import IRefreshTokens from "../interfaces/IResponses/IUserRefreshTokens";
 
-export const API_URL = "http://192.168.136.176:8080/api";
+export const API_URL = "http://192.168.3.68:8080/api";
 
 const $api = axios.create({
     withCredentials: true,

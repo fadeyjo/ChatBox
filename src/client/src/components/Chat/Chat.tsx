@@ -2,6 +2,7 @@ import React, {
     useCallback,
     useContext,
     useEffect,
+    useLayoutEffect,
     useRef,
     useState,
 } from "react";
@@ -218,7 +219,7 @@ export const Chat: React.FC = () => {
         setIsAtBottom(scrollHeight - scrollTop === clientHeight);
     };
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (inputRef.current) {
             inputRef.current.focus();
         }

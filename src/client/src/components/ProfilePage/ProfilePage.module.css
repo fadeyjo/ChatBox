@@ -17,6 +17,7 @@
     background-color: #e8e8e8;
     padding: 40px 70px;
     border-radius: 60px;
+    max-width: 1100px;
 }
 
 .manage_buttons {

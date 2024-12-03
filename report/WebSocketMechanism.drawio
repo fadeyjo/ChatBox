@@ -1,0 +1,85 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.7.17 Chrome/128.0.6613.186 Electron/32.2.5 Safari/537.36" version="24.7.17">
+  <diagram name="Page-1" id="eBny72UKkSVaU4mxYR6d">
+    <mxGraphModel dx="969" dy="581" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-1" value="Клиент&amp;nbsp;1" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="190" y="140" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-2" value="Клиент 2" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="880" y="140" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-3" value="Подписывается на получение сообщений" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="370" y="60" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-4" value="Слушает новые сообщения" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="370" y="260" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-6" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0.502;exitY=0.12;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="gFA8zQXFGTrSmDi9TWU7-1" target="gFA8zQXFGTrSmDi9TWU7-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="440" y="270" as="sourcePoint" />
+            <mxPoint x="490" y="220" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="250" y="90" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-8" value="ChatId, socketId" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="250" y="60" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-9" value="" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.497;entryY=0.945;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="gFA8zQXFGTrSmDi9TWU7-4" target="gFA8zQXFGTrSmDi9TWU7-1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="370" y="220" as="sourcePoint" />
+            <mxPoint x="250" y="230" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="250" y="290" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-12" value="Новое сообщение" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="250" y="260" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-13" value="Отправляет новое сообщение" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="730" y="60" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-14" value="Рассылка сообщения по всем сокетам в данном чате" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="525" y="60" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-17" value="" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="gFA8zQXFGTrSmDi9TWU7-13" target="gFA8zQXFGTrSmDi9TWU7-14">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="570" y="250" as="sourcePoint" />
+            <mxPoint x="620" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-18" value="" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0.415;exitY=0.088;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="gFA8zQXFGTrSmDi9TWU7-2" target="gFA8zQXFGTrSmDi9TWU7-13">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="900" y="110" as="sourcePoint" />
+            <mxPoint x="710" y="100" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="930" y="90" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-20" value="Сообщение" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="850" y="60" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-21" value="Сообщение" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="642" y="60" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-22" value="Сервер" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="395" y="236" width="70" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-23" value="Клиент" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="395" y="33" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-24" value="Сервер" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="546" y="34" width="70" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="gFA8zQXFGTrSmDi9TWU7-25" value="Клиент" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="760" y="33" width="60" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
